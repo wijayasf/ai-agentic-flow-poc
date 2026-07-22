@@ -34,7 +34,7 @@
     "gateMomentId": "M13",
     "approvedMomentId": "M14",
     "continuationMomentId": "M14",
-    "copy": "Approve priority ceiling repair and an IDR service recovery credit?",
+    "copy": "Approve partial compensation and repair follow-up, or reject and escalate?",
     "numericAmountAllowed": false
   },
   "failureRecovery": {
@@ -461,12 +461,12 @@
       "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9"],
       "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
       "approvalGate": {
-        "action": "approve",
+        "actions": ["approve", "reject"],
         "continuationMomentId": "M14",
-        "copy": "Approve priority ceiling repair and an IDR service recovery credit?"
+        "copy": "Approve partial compensation and repair follow-up, or reject and escalate?"
       },
       "failureGate": null,
-      "completion": { "presenter": "wait_for_approval", "auto": "approve_and_advance" },
+      "completion": { "presenter": "wait_for_approval", "auto": "wait_for_approval" },
       "expected": {
         "playbackStatus": "running",
         "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],

@@ -18,11 +18,23 @@ export function reduceRuntimeActions(
 export function simulateAutoRun(
   fixtures: RuntimeFixtureBundle = runtimeFixtures,
 ): RuntimeState {
+  const approvalMoment = fixtures.timeline.moments.find(
+    (moment) => moment.id === fixtures.timeline.approval.gateMomentId,
+  )
+  const approvalGateSecond = approvalMoment === undefined
+    ? fixtures.timeline.totalScheduledSeconds
+    : approvalMoment.startSecond + approvalMoment.durationSeconds
   return reduceRuntimeActions(
     createInitialRuntimeState('auto', fixtures),
     [
       { type: 'START' },
-      { type: 'ADVANCE_TIME', seconds: fixtures.timeline.totalScheduledSeconds },
+      { type: 'ADVANCE_TIME', seconds: approvalGateSecond },
+      { type: 'APPROVE' },
+      {
+        type: 'ADVANCE_TIME',
+        seconds:
+          fixtures.timeline.totalScheduledSeconds - approvalGateSecond,
+      },
     ],
     fixtures,
   )

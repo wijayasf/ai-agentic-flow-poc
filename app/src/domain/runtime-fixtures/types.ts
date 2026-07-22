@@ -133,11 +133,10 @@ export type RuntimeCompletionAction =
   | 'pause'
   | 'wait_for_approval'
   | 'wait_for_failure_injection'
-  | 'approve_and_advance'
   | 'inject_failure_and_advance'
   | 'complete'
 export type ConflictStatus = 'neutral' | 'active' | 'resolved'
-export type ApprovalStatus = 'not_required' | 'pending' | 'approved'
+export type ApprovalStatus = 'not_required' | 'pending' | 'approved' | 'rejected'
 export type FailureStatus = 'not_injected' | 'active' | 'recovered'
 export type RecoveryStatus = 'not_started' | 'recovering' | 'completed'
 
@@ -199,7 +198,7 @@ export interface RuntimeMoment {
   readonly visibleEventIds: readonly EventId[]
   readonly availableArtifactIds: readonly ArtifactId[]
   readonly approvalGate: null | {
-    readonly action: 'approve'
+    readonly actions: readonly ['approve', 'reject']
     readonly continuationMomentId: MomentId
     readonly copy: string
   }

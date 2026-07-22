@@ -9,6 +9,7 @@ export interface RuntimeControllerActions {
   readonly nextMoment: () => void
   readonly restart: () => void
   readonly approve: () => void
+  readonly reject: () => void
   readonly injectFailure: () => void
 }
 

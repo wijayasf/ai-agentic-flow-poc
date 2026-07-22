@@ -36,6 +36,7 @@ export function useRuntimeController(): RuntimeController {
   const nextMoment = useCallback(() => dispatch({ type: 'NEXT_MOMENT' }), [])
   const restart = useCallback(() => dispatch({ type: 'RESTART' }), [])
   const approve = useCallback(() => dispatch({ type: 'APPROVE' }), [])
+  const reject = useCallback(() => dispatch({ type: 'REJECT' }), [])
   const injectFailure = useCallback(
     () => dispatch({ type: 'INJECT_FAILURE' }),
     [],
@@ -50,10 +51,12 @@ export function useRuntimeController(): RuntimeController {
       nextMoment,
       restart,
       approve,
+      reject,
       injectFailure,
     }),
     [
       approve,
+      reject,
       injectFailure,
       nextMoment,
       pause,

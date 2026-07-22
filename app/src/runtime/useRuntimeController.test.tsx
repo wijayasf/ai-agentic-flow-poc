@@ -15,7 +15,10 @@ describe('useRuntimeController', () => {
   it('starts with the exact Presenter idle state and selector controls', () => {
     const { result } = renderHook(() => useRuntimeController())
 
-    expect(result.current.state).toEqual(runtimeFixtures.initialState)
+    expect(result.current.state).toEqual({
+      ...runtimeFixtures.initialState,
+      terminalOutcome: 'unresolved',
+    })
     expect(result.current.viewModel.controls).toMatchObject({
       canStart: true,
       canRestart: true,
@@ -48,16 +51,36 @@ describe('useRuntimeController', () => {
     expect(clearIntervalSpy).toHaveBeenCalledTimes(2)
   })
 
-  it('completes Auto Mode at exactly 10:00 with one active timer at a time', () => {
+  it('stops Auto Mode at approval and resumes only after an explicit decision', () => {
     const { result } = renderHook(() => useRuntimeController())
 
     act(() => result.current.actions.selectMode('auto'))
     act(() => result.current.actions.start())
     act(() => vi.advanceTimersByTime(600_000))
 
+    expect(result.current.state).toMatchObject({
+      currentMomentId: 'M13',
+      playbackStatus: 'waiting_approval',
+      approvalStatus: 'pending',
+      elapsedSeconds: 390,
+      timerActive: false,
+    })
+    expect(result.current.viewModel.controls.canApprove).toBe(true)
+    expect(result.current.viewModel.controls.canReject).toBe(true)
+
+    act(() => result.current.actions.approve())
+    expect(result.current.state).toMatchObject({
+      currentMomentId: 'M14',
+      approvalStatus: 'approved',
+      playbackStatus: 'running',
+      timerActive: true,
+    })
+    act(() => vi.advanceTimersByTime(210_000))
+
     expect(result.current.state).toEqual({
       ...runtimeFixtures.finalState,
       mode: 'auto',
+      terminalOutcome: 'approved',
     })
     expect(result.current.viewModel.timer.elapsedText).toBe('10:00')
     expect(result.current.state.timerActive).toBe(false)
@@ -114,7 +137,10 @@ describe('useRuntimeController', () => {
     })
     act(() => vi.advanceTimersByTime(165_000))
 
-    expect(result.current.state).toEqual(runtimeFixtures.finalState)
+    expect(result.current.state).toEqual({
+      ...runtimeFixtures.finalState,
+      terminalOutcome: 'approved',
+    })
     expect(result.current.state.elapsedSeconds).toBe(600)
   })
 
@@ -129,7 +155,45 @@ describe('useRuntimeController', () => {
     expect(result.current.state).toEqual({
       ...runtimeFixtures.initialState,
       mode: 'auto',
+      terminalOutcome: 'unresolved',
     })
     expect(result.current.state.timerActive).toBe(false)
+    expect(result.current.viewModel.earlyStory).toMatchObject({
+      phase: 'idle',
+      isIdle: true,
+      showCustomerTyping: false,
+      showCustomerIdentity: false,
+      showCustomerMessage: false,
+      visibleAttachmentCount: 0,
+      showAiTyping: false,
+      showAiAcknowledgement: false,
+    })
+  })
+
+  it('records rejection once, stops timing, and fully clears it on restart', () => {
+    const { result } = renderHook(() => useRuntimeController())
+
+    act(() => result.current.actions.selectMode('auto'))
+    act(() => result.current.actions.start())
+    act(() => vi.advanceTimersByTime(390_000))
+    act(() => result.current.actions.reject())
+
+    expect(result.current.state).toMatchObject({
+      playbackStatus: 'completed',
+      approvalStatus: 'rejected',
+      terminalOutcome: 'escalated',
+      timerActive: false,
+    })
+    const rejected = result.current.state
+    act(() => result.current.actions.reject())
+    act(() => result.current.actions.approve())
+    expect(result.current.state).toBe(rejected)
+
+    act(() => result.current.actions.restart())
+    expect(result.current.state).toEqual({
+      ...runtimeFixtures.initialState,
+      mode: 'auto',
+      terminalOutcome: 'unresolved',
+    })
   })
 })

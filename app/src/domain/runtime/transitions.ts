@@ -84,13 +84,6 @@ function resolveBoundary(
         playbackStatus: 'waiting_failure_injection',
         timerActive: false,
       }
-    case 'approve_and_advance': {
-      const approved = findMoment(
-        moment.approvalGate?.continuationMomentId ?? null,
-        fixtures,
-      )
-      return approved === null ? state : enterMoment(state, approved)
-    }
     case 'inject_failure_and_advance': {
       const failed = findMoment(
         moment.failureGate?.continuationMomentId ?? null,
@@ -171,6 +164,7 @@ export function isRuntimeActionLegal(
         moment.failureGate === null
       )
     case 'APPROVE':
+    case 'REJECT':
       return (
         state.playbackStatus === 'waiting_approval' &&
         moment?.approvalGate !== null &&
@@ -246,7 +240,26 @@ export function transitionRuntimeState(
         moment?.approvalGate?.continuationMomentId ?? null,
         fixtures,
       )
-      return approved === null ? state : enterMoment(state, approved)
+      return approved === null
+        ? state
+        : enterMoment(
+            { ...state, terminalOutcome: 'unresolved' },
+            approved,
+          )
+    }
+    case 'REJECT': {
+      return {
+        ...state,
+        playbackStatus: 'completed',
+        approvalStatus: 'rejected',
+        terminalOutcome: 'escalated',
+        availableArtifactIds: state.availableArtifactIds.filter(
+          (artifactId) => artifactId !== 'artifact-approval',
+        ),
+        recommendationVisible: false,
+        remainingSeconds: 0,
+        timerActive: false,
+      }
     }
     case 'INJECT_FAILURE': {
       const failed = findMoment(
