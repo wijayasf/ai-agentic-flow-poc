@@ -1,0 +1,7 @@
+{
+  "id": "finance-resolution-001",
+  "currency": "IDR",
+  "repairPlan": "Schedule priority ceiling repair",
+  "compensationType": "service recovery credit",
+  "requiresApproval": true
+}

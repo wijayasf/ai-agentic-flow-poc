@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    {
+      "id": "artifact-summary",
+      "order": 1,
+      "name": "Customer Situation Summary"
+    },
+    {
+      "id": "artifact-conflict",
+      "order": 2,
+      "name": "Conflict & Root-Cause Report"
+    },
+    {
+      "id": "artifact-approval",
+      "order": 3,
+      "name": "Resolution & Approval Package"
+    },
+    {
+      "id": "artifact-prevention",
+      "order": 4,
+      "name": "Preventive Control Recommendation"
+    }
+  ]
+}

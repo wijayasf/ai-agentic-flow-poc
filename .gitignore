@@ -1,0 +1,43 @@
+# Internal AI agent workspace — must remain local, never published
+ai-workspace/
+
+# Graphify repository intelligence state — local only
+.graphify/
+graphify-out/
+
+# Internal engineering documents — not for the public repository
+00-Engineering-Playbook.md
+01-Agent-Registry.md
+02-Product-PRD.md
+03-UI-UX-Blueprint.md
+04-Presentation-Scenario.md
+05-Technical-Architecture.md
+06-Implementation-Guide.md
+07-Component-Specification.md
+08-Mock-API-and-Data-Specification.md
+09-QA-Playbook.md
+10-Deployment-Guide.md
+11-Prompt-Playbook.md
+PACKAGE_MANIFEST.json
+CHANGELOG.md
+
+# Dependencies
+node_modules/
+app/node_modules/
+
+# Build output
+dist/
+app/dist/
+
+# Test output
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS and local files
+.DS_Store
+*.log
+*.local

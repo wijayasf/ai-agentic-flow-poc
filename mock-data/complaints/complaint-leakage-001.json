@@ -1,0 +1,26 @@
+{
+  "id": "complaint-leakage-001",
+  "customerId": "customer-rina-putri",
+  "createdAt": "09:15:00",
+  "message": "Hi, after handover on 10 May, there is still leakage in the bathroom ceiling. I have reported it multiple times but the repair is still not done.",
+  "attachments": [
+    {
+      "id": "att-photo",
+      "name": "leakage photo",
+      "extension": "jpg",
+      "type": "image"
+    },
+    {
+      "id": "att-handover",
+      "name": "handover agreement",
+      "extension": "pdf",
+      "type": "document"
+    },
+    {
+      "id": "att-receipt",
+      "name": "payment receipt",
+      "extension": "pdf",
+      "type": "document"
+    }
+  ]
+}

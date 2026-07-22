@@ -1,0 +1,100 @@
+{
+  "events": [
+    {
+      "id": "evt-1",
+      "time": "09:16:12",
+      "agent": "Customer Complaint Agent",
+      "action": "Customer matched",
+      "skill": "Image understanding",
+      "output": "Customer verified: Rina Putri"
+    },
+    {
+      "id": "evt-2",
+      "time": "09:16:45",
+      "agent": "Customer Complaint Agent",
+      "action": "Evidence analyzed",
+      "skill": "Image understanding",
+      "output": "Leakage confirmed in photos"
+    },
+    {
+      "id": "evt-3",
+      "time": "09:17:20",
+      "agent": "Workflow Agent",
+      "action": "Checked SAP CX",
+      "skill": "SAP CX investigation",
+      "output": "Ticket status: Completed"
+    },
+    {
+      "id": "evt-4",
+      "time": "09:17:58",
+      "agent": "Policy Agent",
+      "action": "Conflict detected",
+      "skill": "Policy retrieval",
+      "output": "Policy requires resolution"
+    },
+    {
+      "id": "evt-5",
+      "time": "09:18:40",
+      "agent": "Finance Agent",
+      "action": "Resolution prepared",
+      "skill": "Financial calculation",
+      "output": "Compensation & repair plan ready"
+    },
+    {
+      "id": "evt-6",
+      "time": "09:17:05",
+      "agent": "Policy Agent",
+      "action": "Policy retrieved",
+      "skill": "Policy retrieval",
+      "output": "Post-Handover Defect Resolution Policy applied"
+    },
+    {
+      "id": "evt-7",
+      "time": "09:17:38",
+      "agent": "Finance Agent",
+      "action": "Finance context prepared",
+      "skill": "Financial calculation",
+      "output": "Service recovery credit requires approval"
+    },
+    {
+      "id": "evt-8",
+      "time": "09:18:15",
+      "agent": "Case Commander",
+      "action": "Case escalated",
+      "skill": "Conflict orchestration",
+      "output": "Incorrectly closed case requires remediation"
+    },
+    {
+      "id": "evt-9",
+      "time": "09:19:05",
+      "agent": "Finance Agent",
+      "action": "Approval requested",
+      "skill": "Financial calculation",
+      "output": "Repair and service recovery package submitted"
+    },
+    {
+      "id": "evt-10",
+      "time": "09:19:45",
+      "agent": "Case Commander",
+      "action": "Approval confirmed",
+      "skill": "Human approval",
+      "output": "Resolution package approved"
+    },
+    {
+      "id": "evt-11",
+      "time": "09:20:10",
+      "agent": "Finance Agent",
+      "action": "Finance posting failed",
+      "skill": "Financial posting",
+      "output": "FINANCE_POST_TIMEOUT"
+    },
+    {
+      "id": "evt-12",
+      "time": "09:20:30",
+      "agent": "Finance Agent",
+      "action": "Fallback retry succeeded",
+      "skill": "Financial posting",
+      "output": "Finance posting completed"
+    }
+  ]
+}

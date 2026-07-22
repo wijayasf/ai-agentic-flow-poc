@@ -1,0 +1,44 @@
+{
+  "id": "main-complaint-resolution",
+  "totalDurationSeconds": 600,
+  "stages": [
+    "Intake",
+    "Investigation",
+    "Conflict",
+    "Approval",
+    "Resolution"
+  ],
+  "scenes": [
+    {
+      "id": "scene-intake",
+      "stage": 0,
+      "presenterPause": true
+    },
+    {
+      "id": "scene-investigation",
+      "stage": 1,
+      "presenterPause": false
+    },
+    {
+      "id": "scene-conflict",
+      "stage": 2,
+      "presenterPause": true
+    },
+    {
+      "id": "scene-approval",
+      "stage": 3,
+      "presenterPause": true
+    },
+    {
+      "id": "scene-failure-recovery",
+      "stage": 3,
+      "failureCode": "FINANCE_POST_TIMEOUT",
+      "presenterPause": false
+    },
+    {
+      "id": "scene-resolution",
+      "stage": 4,
+      "presenterPause": true
+    }
+  ]
+}

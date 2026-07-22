@@ -1,0 +1,18 @@
+{
+  "mode": "presenter",
+  "playbackStatus": "idle",
+  "currentMomentId": null,
+  "completedMomentIds": [],
+  "elapsedSeconds": 0,
+  "remainingSeconds": null,
+  "visibleEventIds": [],
+  "availableArtifactIds": [],
+  "activeAgentIds": [],
+  "activeSystemIds": [],
+  "conflictStatus": "neutral",
+  "approvalStatus": "not_required",
+  "failureStatus": "not_injected",
+  "recoveryStatus": "not_started",
+  "recommendationVisible": false,
+  "timerActive": false
+}

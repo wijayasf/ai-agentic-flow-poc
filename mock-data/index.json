@@ -1,0 +1,12 @@
+{
+  "version": "5.0",
+  "scenario": "mock-data/scenarios/main-scenario.json",
+  "customer": "mock-data/customers/customer-rina-putri.json",
+  "complaint": "mock-data/complaints/complaint-leakage-001.json",
+  "policy": "mock-data/policies/refund-and-repair-policy.json",
+  "workflow": "mock-data/workflow/sap-cx-case.json",
+  "finance": "mock-data/finance/resolution-plan.json",
+  "artifacts": "mock-data/artifacts/artifacts.json",
+  "events": "mock-data/system-events/events.json",
+  "timeline": "mock-data/timeline/moments.json"
+}

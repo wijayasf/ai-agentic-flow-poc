@@ -1,0 +1,10 @@
+{
+  "id": "policy-refund-repair",
+  "name": "Post-Handover Defect Resolution Policy",
+  "rules": [
+    "Verify customer evidence",
+    "Reopen incorrectly closed cases",
+    "Require approval for compensation",
+    "Confirm customer resolution before closure"
+  ]
+}

@@ -1,0 +1,85 @@
+# GitHub Pages Deployment — AI Agentic Flow POC
+# Deploys the Vite + React application to GitHub Pages.
+#
+# Prerequisites before enabling this workflow:
+#   1. Repository must exist on GitHub (owner: wijayasf).
+#   2. In repository Settings → Pages:
+#        Source: GitHub Actions
+#   3. The workflow requires the 'pages' and 'id-token' permissions below.
+#
+# Final URL: https://wijayasf.github.io/<REPO_NAME>/
+# Replace <REPO_NAME> with the actual repository name once created.
+# The base path is set automatically from github.event.repository.name.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Lint
+        working-directory: app
+        run: npm run lint
+
+      - name: Type check
+        working-directory: app
+        run: npm run typecheck
+
+      - name: Test
+        working-directory: app
+        run: npm test
+
+      - name: Build
+        working-directory: app
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
