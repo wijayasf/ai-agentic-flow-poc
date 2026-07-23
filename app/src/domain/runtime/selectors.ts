@@ -283,14 +283,14 @@ export function selectNowNext(
   }
   if (state.playbackStatus === 'failed') {
     return {
-      now: 'Finance posting blocked',
-      next: 'Escalate to fallback recovery',
+      now: 'Contractor rejected task',
+      next: 'Rerouting to alternative contractor',
     }
   }
   if (state.playbackStatus === 'recovering') {
     return {
-      now: 'Recovering finance posting',
-      next: 'Complete recovery',
+      now: 'Rerouting repair task',
+      next: 'Complete rerouting',
     }
   }
   if (state.approvalStatus === 'approved') {

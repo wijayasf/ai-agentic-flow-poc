@@ -198,11 +198,11 @@ describe('StaticShell runtime presentation', () => {
 
     expect(screen.getByRole('heading', { name: 'Case Resolved' })).toBeInTheDocument()
     expect(screen.getByText('4 agents collaborated')).toBeInTheDocument()
-    expect(screen.getByText('3 enterprise sources checked')).toBeInTheDocument()
-    expect(screen.getByText('Partial compensation approved')).toBeInTheDocument()
-    expect(screen.getByText('SAP CX case reopened')).toBeInTheDocument()
+    expect(screen.getByText('4 enterprise systems engaged')).toBeInTheDocument()
+    expect(screen.getByText('Rp31,000,000 compensation approved')).toBeInTheDocument()
+    expect(screen.getByText('SAP CX ticket reopened')).toBeInTheDocument()
     expect(
-      screen.getByText('Customer validation required before ticket completion'),
+      screen.getByText('11 similar cases — recurring SAP CX control gap'),
     ).toBeInTheDocument()
     expect(
       screen.getByLabelText('Demo time 10:00 of 10:00'),
@@ -312,13 +312,13 @@ describe('StaticShell runtime presentation', () => {
     renderShell(presenterAtApprovalGate(), actions)
 
     expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
-    expect(screen.getByText('Approve partial compensation and repair follow-up')).toBeInTheDocument()
-    expect(screen.getByText('Leakage confirmed from customer evidence')).toBeInTheDocument()
-    expect(screen.getByText('SAP CX status conflicts with actual condition')).toBeInTheDocument()
-    expect(screen.getByText('Relevant warranty policy matched')).toBeInTheDocument()
-    expect(screen.getByText('IDR 750,000')).toBeInTheDocument()
-    expect(screen.getByText('Simulated estimate')).toBeInTheDocument()
-    expect(screen.getByText('High probability of escalation')).toBeInTheDocument()
+    expect(screen.getByText('Reopen SAP CX case and schedule urgent inspection')).toBeInTheDocument()
+    expect(screen.getByText('Handover Clause 8.2 and Defect Policy 4.1 require resolution')).toBeInTheDocument()
+    expect(screen.getByText('SAP CX status conflicts with customer-confirmed evidence')).toBeInTheDocument()
+    expect(screen.getByText('Customer Care Director approval required for Rp31 million compensation')).toBeInTheDocument()
+    expect(screen.getByText('Rp31,000,000')).toBeInTheDocument()
+    expect(screen.getByText('Approved per financial calculation (Finance Agent)')).toBeInTheDocument()
+    expect(screen.getByText('High customer and reputational risk')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Likely Outcome' })).toBeInTheDocument()
     const approveButton = screen.getByRole('button', { name: 'Approve' })
     const rejectButton = screen.getByRole('button', { name: 'Reject' })
@@ -395,8 +395,8 @@ describe('StaticShell runtime presentation', () => {
         actions={actions}
       />,
     )
-    expect(getAgents()[3]).toHaveAttribute('data-state', 'blocked')
-    expect(within(getAgents()[3]).getByText('Blocked')).toBeInTheDocument()
+    expect(getAgents()[2]).toHaveAttribute('data-state', 'blocked')
+    expect(within(getAgents()[2]).getByText('Blocked')).toBeInTheDocument()
 
     const completed = simulateAutoRun()
     rendered.rerender(
@@ -517,7 +517,7 @@ describe('StaticShell runtime presentation', () => {
     )
     expect(screen.getByRole('heading', { name: 'Likely Outcome' })).toBeInTheDocument()
     expect(screen.getByText('Draft recommendation · Not final')).toBeInTheDocument()
-    expect(screen.getByText('Mandatory customer confirmation')).toBeInTheDocument()
+    expect(screen.getByText('Reopen SAP CX ticket and schedule inspection within 24 hours')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Case Resolved' })).not.toBeInTheDocument()
   })
 

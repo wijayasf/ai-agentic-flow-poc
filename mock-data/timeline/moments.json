@@ -34,7 +34,7 @@
     "gateMomentId": "M13",
     "approvedMomentId": "M14",
     "continuationMomentId": "M14",
-    "copy": "Approve partial compensation and repair follow-up, or reject and escalate?",
+    "copy": "Approve reopening the SAP CX case, urgent inspection, and Rp31,000,000 compensation, or reject and escalate?",
     "numericAmountAllowed": false
   },
   "failureRecovery": {
@@ -42,9 +42,9 @@
     "failureMomentId": "M16",
     "recoveringMomentId": "M17",
     "recoveredMomentId": "M18",
-    "failureCode": "FINANCE_POST_TIMEOUT",
-    "failureCopy": "Finance posting timed out (FINANCE_POST_TIMEOUT). Retrying through deterministic fallback.",
-    "recoveryCopy": "Fallback retry succeeded. Finance posting completed."
+    "failureCode": "CONTRACTOR_REJECTED",
+    "failureCopy": "Contractor rejected the task (CONTRACTOR_REJECTED). Rerouting to alternative contractor.",
+    "recoveryCopy": "Alternative contractor accepted. Task rerouted successfully (TASK_REROUTED)."
   },
   "recommendation": {
     "availableAtMomentId": "M20",
@@ -463,7 +463,7 @@
       "approvalGate": {
         "actions": ["approve", "reject"],
         "continuationMomentId": "M14",
-        "copy": "Approve partial compensation and repair follow-up, or reject and escalate?"
+        "copy": "Approve reopening the SAP CX case, urgent inspection, and Rp31,000,000 compensation, or reject and escalate?"
       },
       "failureGate": null,
       "completion": { "presenter": "wait_for_approval", "auto": "wait_for_approval" },
@@ -519,8 +519,8 @@
       "durationSeconds": 15,
       "sceneId": "scene-failure-recovery",
       "stage": "Approval",
-      "title": "Failure injection cue",
-      "description": "Expose the deterministic finance posting cue.",
+      "title": "Contractor assignment cue",
+      "description": "The Workflow Agent initiates the repair contractor assignment.",
       "entryEffects": [{ "type": "show_failure_injection_cue" }],
       "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10"],
       "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
@@ -528,7 +528,7 @@
       "failureGate": {
         "action": "inject_failure",
         "continuationMomentId": "M16",
-        "failureCode": "FINANCE_POST_TIMEOUT"
+        "failureCode": "CONTRACTOR_REJECTED"
       },
       "completion": { "presenter": "wait_for_failure_injection", "auto": "inject_failure_and_advance" },
       "expected": {
@@ -551,8 +551,8 @@
       "durationSeconds": 20,
       "sceneId": "scene-failure-recovery",
       "stage": "Approval",
-      "title": "Finance posting failed",
-      "description": "Record the controlled finance timeout without throwing an application error.",
+      "title": "Contractor rejected",
+      "description": "Record the contractor rejection without throwing an application error.",
       "entryEffects": [
         { "type": "reveal_event", "eventId": "evt-11" },
         { "type": "set_failure_status", "value": "active" }
@@ -582,8 +582,8 @@
       "durationSeconds": 25,
       "sceneId": "scene-failure-recovery",
       "stage": "Approval",
-      "title": "Fallback recovery",
-      "description": "Declare deterministic fallback recovery in progress.",
+      "title": "Rerouting to alternative contractor",
+      "description": "The Workflow Agent identifies and assigns an alternative contractor.",
       "entryEffects": [{ "type": "set_recovery_status", "value": "recovering" }],
       "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11"],
       "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
@@ -610,8 +610,8 @@
       "durationSeconds": 30,
       "sceneId": "scene-failure-recovery",
       "stage": "Approval",
-      "title": "Finance posting recovered",
-      "description": "Record successful fallback posting and recovered finance state.",
+      "title": "Contractor accepted — task rerouted",
+      "description": "Record successful rerouting and alternative contractor acceptance.",
       "entryEffects": [
         { "type": "reveal_event", "eventId": "evt-12" },
         { "type": "set_failure_status", "value": "recovered" },
@@ -683,7 +683,7 @@
       "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval", "artifact-prevention"],
       "approvalGate": null,
       "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": { "presenter": "pause", "auto": "pause" },
       "expected": {
         "playbackStatus": "running",
         "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],

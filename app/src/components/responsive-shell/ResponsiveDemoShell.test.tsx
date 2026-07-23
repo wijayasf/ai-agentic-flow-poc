@@ -177,7 +177,7 @@ describe('ResponsiveDemoShell', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Human Approval/ }))
 
     expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
-    expect(screen.getByText('IDR 750,000')).toBeInTheDocument()
+    expect(screen.getByText('Rp31,000,000')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
     fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
     expect(actions.approve).toHaveBeenCalledTimes(1)
@@ -191,7 +191,7 @@ describe('ResponsiveDemoShell', () => {
     fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
     fireEvent.click(screen.getByRole('tab', { name: /Final Outcome/ }))
     expect(screen.getByRole('heading', { name: 'Case Resolved' })).toBeInTheDocument()
-    expect(screen.getByText('Partial compensation approved')).toBeInTheDocument()
+    expect(screen.getByText('Rp31,000,000 compensation approved')).toBeInTheDocument()
 
     const rejected = transitionRuntimeState(autoAtApprovalGate(), { type: 'REJECT' })
     rendered.rerender(

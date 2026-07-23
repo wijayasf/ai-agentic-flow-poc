@@ -14,22 +14,23 @@ import type {
 export const OUTCOME_PREVIEW: OutcomePreviewPresentation = {
   label: 'Likely Outcome',
   items: [
-    'Repair follow-up',
-    'Partial compensation',
-    'Mandatory customer confirmation',
+    'Reopen SAP CX ticket and schedule inspection within 24 hours',
+    'Assign alternative contractor',
+    'Create Rp31 million compensation credit memo',
+    'Send daily customer updates',
   ],
 }
 
 export const APPROVAL_GATE_PRESENTATION: ApprovalGatePresentation = {
-  recommendedAction: 'Approve partial compensation and repair follow-up',
+  recommendedAction: 'Reopen SAP CX case and schedule urgent inspection',
   why: [
-    'Leakage confirmed from customer evidence',
-    'SAP CX status conflicts with actual condition',
-    'Relevant warranty policy matched',
+    'Handover Clause 8.2 and Defect Policy 4.1 require resolution',
+    'SAP CX status conflicts with customer-confirmed evidence',
+    'Customer Care Director approval required for Rp31 million compensation',
   ],
-  estimatedImpact: 'IDR 750,000',
-  impactQualifier: 'Simulated estimate',
-  riskIfRejected: 'High probability of escalation',
+  estimatedImpact: 'Rp31,000,000',
+  impactQualifier: 'Approved per financial calculation (Finance Agent)',
+  riskIfRejected: 'High customer and reputational risk',
   outcomePreview: OUTCOME_PREVIEW,
 }
 
@@ -38,26 +39,34 @@ export const APPROVED_FINAL_OUTCOME: FinalOutcomePresentation = {
   heading: 'Case Resolved',
   summary: [
     '4 agents collaborated',
-    '3 enterprise sources checked',
-    '1 conflict detected',
-    '1 human decision completed',
+    '4 enterprise systems engaged',
+    '1 conflict detected and resolved',
+    '1 human decision: Approved',
     '4 artifacts produced',
+    '11 similar cases identified',
   ],
   sections: [
     {
       heading: 'Customer Outcome',
-      items: ['Repair follow-up scheduled', 'Partial compensation approved'],
+      items: [
+        'Inspection scheduled within 24 hours',
+        'Rp31,000,000 compensation approved',
+        'Daily customer updates scheduled',
+      ],
     },
     {
       heading: 'Operational Outcome',
       items: [
-        'SAP CX case reopened',
+        'SAP CX ticket reopened',
         'Customer confirmation required before closure',
       ],
     },
     {
-      heading: 'Preventive Action',
-      items: ['Customer validation required before ticket completion'],
+      heading: 'Enterprise Learning',
+      items: [
+        '11 similar cases — recurring SAP CX control gap',
+        'Preventive control: mandatory customer confirmation before SAP CX closure',
+      ],
     },
   ],
 }
@@ -139,9 +148,9 @@ export const LIFECYCLE_BY_MOMENT: Readonly<Record<MomentId, LifecycleByAgent>> =
   M12: lifecycle('completed', 'completed', 'completed', 'working'),
   M13: lifecycle('completed', 'completed', 'completed', 'needs_review'),
   M14: lifecycle('completed', 'completed', 'completed', 'working'),
-  M15: lifecycle('completed', 'completed', 'completed', 'working'),
-  M16: lifecycle('completed', 'completed', 'completed', 'blocked'),
-  M17: lifecycle('completed', 'completed', 'completed', 'working'),
+  M15: lifecycle('completed', 'completed', 'working', 'completed'),
+  M16: lifecycle('completed', 'completed', 'blocked', 'completed'),
+  M17: lifecycle('completed', 'completed', 'working', 'completed'),
   M18: lifecycle('completed', 'completed', 'completed', 'completed'),
   M19: lifecycle('completed', 'completed', 'completed', 'completed'),
   M20: lifecycle('completed', 'completed', 'completed', 'completed'),
@@ -190,10 +199,10 @@ export const FOCUS_BY_MOMENT: Readonly<Record<MomentId, RuntimeFocusTarget>> = {
   M12: 'agent-finance',
   M13: 'approval',
   M14: 'agent-finance',
-  M15: 'agent-finance',
-  M16: 'agent-finance',
-  M17: 'agent-finance',
-  M18: 'agent-finance',
+  M15: 'agent-workflow',
+  M16: 'agent-workflow',
+  M17: 'agent-workflow',
+  M18: 'agent-workflow',
   M19: 'resolution',
   M20: 'resolution',
   M21: 'resolution',
@@ -266,11 +275,32 @@ const FINANCE_RESULT: DecisionRationalePresentation = {
   ],
 }
 
-const FINANCE_BLOCKED: DecisionRationalePresentation = {
-  agentId: 'agent-finance',
+const WORKFLOW_ASSIGNING: DecisionRationalePresentation = {
+  agentId: 'agent-workflow',
+  state: 'working',
+  title: 'Assigning repair contractor',
+  bullets: ['Identifying available contractors', 'Preparing repair task assignment'],
+}
+
+const WORKFLOW_BLOCKED: DecisionRationalePresentation = {
+  agentId: 'agent-workflow',
   state: 'blocked',
-  title: 'Finance posting blocked',
-  bullets: ['Primary posting timed out', 'Fallback recovery is required'],
+  title: 'Contractor rejected task',
+  bullets: ['Assigned contractor cannot accept the repair', 'Rerouting to alternative contractor'],
+}
+
+const WORKFLOW_REROUTING: DecisionRationalePresentation = {
+  agentId: 'agent-workflow',
+  state: 'working',
+  title: 'Rerouting repair task',
+  bullets: ['Alternative contractor identified', 'Task assignment in progress'],
+}
+
+const WORKFLOW_REROUTED: DecisionRationalePresentation = {
+  agentId: 'agent-workflow',
+  state: 'result',
+  title: 'Task rerouted',
+  bullets: ['Alternative contractor accepted', 'Repair task rescheduled'],
 }
 
 export const RATIONALE_BY_MOMENT: Readonly<
@@ -290,10 +320,10 @@ export const RATIONALE_BY_MOMENT: Readonly<
   M12: FINANCE_WORKING,
   M13: FINANCE_RESULT,
   M14: FINANCE_RESULT,
-  M15: FINANCE_RESULT,
-  M16: FINANCE_BLOCKED,
-  M17: FINANCE_WORKING,
-  M18: FINANCE_RESULT,
+  M15: WORKFLOW_ASSIGNING,
+  M16: WORKFLOW_BLOCKED,
+  M17: WORKFLOW_REROUTING,
+  M18: WORKFLOW_REROUTED,
   M19: FINANCE_RESULT,
   M20: FINANCE_RESULT,
   M21: FINANCE_RESULT,
@@ -323,7 +353,7 @@ export const TRANSITION_BY_MOMENT: Partial<
     next: 'Continuing resolution processing',
   },
   M18: {
-    title: 'Recovery completed',
+    title: 'Rerouting completed',
     next: 'Moving to Resolution',
   },
 }

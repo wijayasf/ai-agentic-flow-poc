@@ -1006,7 +1006,7 @@ function ContextStatusCard({
   } else if (context.type === 'failure') {
     tone = 'danger'
     icon = 'alert'
-    heading = 'Finance posting failed'
+    heading = 'Contractor rejected'
     copy = context.copy
   } else if (context.type === 'recovery') {
     tone = 'warning'
@@ -1027,7 +1027,7 @@ function ContextStatusCard({
     tone = 'success'
     icon = 'check'
     heading = 'Resolution package approved'
-    copy = 'The approved package is ready for deterministic finance posting.'
+    copy = 'The approved package is ready. Initiating repair contractor assignment.'
   }
 
   return (

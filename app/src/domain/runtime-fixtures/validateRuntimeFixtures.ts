@@ -338,7 +338,7 @@ function validateFailureGate(value: unknown, path: string): RuntimeMoment['failu
     ),
     failureCode: readLiteral(
       record.failureCode,
-      ['FINANCE_POST_TIMEOUT'] as const,
+      ['CONTRACTOR_REJECTED'] as const,
       `${path}.failureCode`,
     ),
   }
@@ -544,7 +544,7 @@ function validateScenario(value: unknown): RuntimeFixtureBundle['scenario'] {
           ...scene,
           failureCode: readLiteral(
             record.failureCode,
-            ['FINANCE_POST_TIMEOUT'] as const,
+            ['CONTRACTOR_REJECTED'] as const,
             `scenario.scenes[${index}].failureCode`,
           ),
         }
@@ -770,7 +770,7 @@ function validateTimeline(
       ),
       failureCode: readLiteral(
         failureRecovery.failureCode,
-        ['FINANCE_POST_TIMEOUT'] as const,
+        ['CONTRACTOR_REJECTED'] as const,
         'timeline.failureRecovery.failureCode',
       ),
       failureCopy: readString(failureRecovery.failureCopy, 'timeline.failureRecovery.failureCopy'),

@@ -146,7 +146,8 @@ describe('application shell', () => {
     expect(screen.getByRole('button', { name: 'Reject' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Auto Mode' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Presenter Mode' })).toBeDisabled()
-    act(() => vi.advanceTimersByTime(60_000))
+    // Advance 9 seconds — below the 10-second auto-approve threshold
+    act(() => vi.advanceTimersByTime(9_000))
     expect(screen.getByLabelText('Demo time 06:30 of 10:00')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Case Resolved' })).not.toBeInTheDocument()
 

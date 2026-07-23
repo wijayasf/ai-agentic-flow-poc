@@ -20,6 +20,7 @@ import {
 import { simulateAutoRun } from './simulation'
 import { transitionRuntimeState } from './transitions'
 import type { RuntimeState } from './types'
+import { runtimeFixtures } from '../runtime-fixtures/loadRuntimeFixtures'
 
 function autoAt(seconds: number): RuntimeState {
   const started = transitionRuntimeState(createInitialRuntimeState('auto'), {
@@ -167,21 +168,22 @@ describe('pure runtime selectors', () => {
 
     expect(auto.playbackStatus).toBe('waiting_approval')
     expect(approval).toEqual({
-      recommendedAction: 'Approve partial compensation and repair follow-up',
+      recommendedAction: 'Reopen SAP CX case and schedule urgent inspection',
       why: [
-        'Leakage confirmed from customer evidence',
-        'SAP CX status conflicts with actual condition',
-        'Relevant warranty policy matched',
+        'Handover Clause 8.2 and Defect Policy 4.1 require resolution',
+        'SAP CX status conflicts with customer-confirmed evidence',
+        'Customer Care Director approval required for Rp31 million compensation',
       ],
-      estimatedImpact: 'IDR 750,000',
-      impactQualifier: 'Simulated estimate',
-      riskIfRejected: 'High probability of escalation',
+      estimatedImpact: 'Rp31,000,000',
+      impactQualifier: 'Approved per financial calculation (Finance Agent)',
+      riskIfRejected: 'High customer and reputational risk',
       outcomePreview: {
         label: 'Likely Outcome',
         items: [
-          'Repair follow-up',
-          'Partial compensation',
-          'Mandatory customer confirmation',
+          'Reopen SAP CX ticket and schedule inspection within 24 hours',
+          'Assign alternative contractor',
+          'Create Rp31 million compensation credit memo',
+          'Send daily customer updates',
         ],
       },
     })
@@ -198,9 +200,10 @@ describe('pure runtime selectors', () => {
     expect(selectOutcomePreview(autoAt(330))).toEqual({
       label: 'Likely Outcome',
       items: [
-        'Repair follow-up',
-        'Partial compensation',
-        'Mandatory customer confirmation',
+        'Reopen SAP CX ticket and schedule inspection within 24 hours',
+        'Assign alternative contractor',
+        'Create Rp31 million compensation credit memo',
+        'Send daily customer updates',
       ],
     })
     expect(selectOutcomePreview(autoApprovalGate())).not.toBeNull()
@@ -316,7 +319,7 @@ describe('pure runtime selectors', () => {
     ).toBe('needs_review')
     expect(
       selectAgentLifecycle(autoAt(435)).find(
-        (agent) => agent.agentId === 'agent-finance',
+        (agent) => agent.agentId === 'agent-workflow',
       )?.status,
     ).toBe('blocked')
 
@@ -344,12 +347,12 @@ describe('pure runtime selectors', () => {
     expect(selectNowNext(autoAt(360)).now).toBe('Waiting for human decision')
     expect(selectNowNext(autoAt(510)).now).toBe('Finalizing customer resolution')
     expect(selectNowNext(autoAt(435))).toEqual({
-      now: 'Finance posting blocked',
-      next: 'Escalate to fallback recovery',
+      now: 'Contractor rejected task',
+      next: 'Rerouting to alternative contractor',
     })
     expect(selectNowNext(autoAt(455))).toEqual({
-      now: 'Recovering finance posting',
-      next: 'Complete recovery',
+      now: 'Rerouting repair task',
+      next: 'Complete rerouting',
     })
     expect(selectNowNext(simulateAutoRun())).toEqual({
       now: 'Case resolved',
@@ -385,7 +388,7 @@ describe('pure runtime selectors', () => {
     expect(selectDecisionRationale(autoAt(240))?.title).toBe('System conflict detected')
     expect(selectDecisionRationale(autoAt(360))?.title).toBe('Recommendation prepared')
     expect(selectDecisionRationale(autoAt(435))).toMatchObject({
-      agentId: 'agent-finance',
+      agentId: 'agent-workflow',
       state: 'blocked',
     })
 
@@ -413,7 +416,7 @@ describe('pure runtime selectors', () => {
     expect(selectRuntimeTransition(autoAt(390))?.title).toBe(
       'Human decision received',
     )
-    expect(selectRuntimeTransition(autoAt(480))?.title).toBe('Recovery completed')
+    expect(selectRuntimeTransition(autoAt(480))?.title).toBe('Rerouting completed')
 
     const restarted = transitionRuntimeState(autoAt(330), { type: 'RESTART' })
     expect(selectRuntimeTransition(restarted)).toBeNull()
@@ -526,5 +529,137 @@ describe('pure runtime selectors', () => {
     expect(view.controls.canSelectPresenter).toBe(true)
     expect(view.controls.canSelectAuto).toBe(true)
     expect(view.controls.canStart).toBe(false)
+  })
+})
+
+describe('RS-04 CONTRACTOR_REJECTED failure scenario', () => {
+  function presenterAtFailureGate(): RuntimeState {
+    let state = transitionRuntimeState(createInitialRuntimeState(), { type: 'START' })
+    state = transitionRuntimeState(state, { type: 'ADVANCE_TIME', seconds: 90 })
+    state = transitionRuntimeState(state, { type: 'NEXT_MOMENT' })
+    state = transitionRuntimeState(state, { type: 'RESUME' })
+    state = transitionRuntimeState(state, { type: 'ADVANCE_TIME', seconds: 240 })
+    state = transitionRuntimeState(state, { type: 'NEXT_MOMENT' })
+    state = transitionRuntimeState(state, { type: 'RESUME' })
+    state = transitionRuntimeState(state, { type: 'ADVANCE_TIME', seconds: 60 })
+    state = transitionRuntimeState(state, { type: 'APPROVE' })
+    return transitionRuntimeState(state, { type: 'ADVANCE_TIME', seconds: 45 })
+  }
+
+  it('fixture failure code is CONTRACTOR_REJECTED', () => {
+    expect(runtimeFixtures.timeline.failureRecovery.failureCode).toBe('CONTRACTOR_REJECTED')
+    const cueMoment = runtimeFixtures.timeline.moments.find((m) => m.id === 'M15')
+    expect(cueMoment?.failureGate?.failureCode).toBe('CONTRACTOR_REJECTED')
+  })
+
+  it('Workflow Agent is blocked at the failure moment; Finance Agent is not blocked', () => {
+    const failed = autoAt(435)
+    const lifecycle = selectAgentLifecycle(failed)
+    expect(lifecycle.find((a) => a.agentId === 'agent-workflow')?.status).toBe('blocked')
+    expect(lifecycle.find((a) => a.agentId === 'agent-finance')?.status).not.toBe('blocked')
+  })
+
+  it('recovery event output is TASK_REROUTED owned by Workflow Agent', () => {
+    const recovered = autoAt(480)
+    const events = selectVisibleEvents(recovered)
+    const recoveryEvent = events.find((e) => e.id === 'evt-12')
+    expect(recoveryEvent?.output).toBe('TASK_REROUTED')
+    expect(recoveryEvent?.agent).toBe('Workflow Agent')
+  })
+
+  it('alternative contractor is represented in outcome preview', () => {
+    const preview = selectOutcomePreview(autoAt(330))
+    expect(preview?.items).toContain('Assign alternative contractor')
+  })
+
+  it('failure and recovery each complete exactly once in a full run', () => {
+    const finalState = simulateAutoRun()
+    expect(finalState.failureStatus).toBe('recovered')
+    expect(finalState.recoveryStatus).toBe('completed')
+    expect(finalState.completedMomentIds.filter((id) => id === 'M16')).toHaveLength(1)
+    expect(finalState.completedMomentIds.filter((id) => id === 'M17')).toHaveLength(1)
+  })
+
+  it('runtime continues to completion after contractor rerouting', () => {
+    const atM18 = autoAt(480)
+    expect(atM18.playbackStatus).toBe('running')
+    expect(atM18.failureStatus).toBe('recovered')
+    expect(atM18.recoveryStatus).toBe('completed')
+    const finalState = simulateAutoRun()
+    expect(finalState.playbackStatus).toBe('completed')
+    expect(finalState.currentMomentId).toBe('M21')
+  })
+
+  it('approved final outcome is reachable after contractor rerouting', () => {
+    const finalOutcome = selectFinalOutcome(simulateAutoRun())
+    expect(finalOutcome?.type).toBe('approved')
+    expect(finalOutcome?.heading).toBe('Case Resolved')
+  })
+
+  it('restart clears failure and recovery state', () => {
+    const failed = autoAt(435)
+    const restarted = transitionRuntimeState(failed, { type: 'RESTART' })
+    expect(restarted.failureStatus).toBe('not_injected')
+    expect(restarted.recoveryStatus).toBe('not_started')
+    expect(restarted.playbackStatus).toBe('idle')
+  })
+
+  it('Auto Mode traverses the contractor rejection and recovery path deterministically', () => {
+    expect(autoAt(420).currentMomentId).toBe('M15')
+    expect(autoAt(420).failureStatus).toBe('not_injected')
+
+    const failed = autoAt(435)
+    expect(failed.currentMomentId).toBe('M16')
+    expect(failed.failureStatus).toBe('active')
+    expect(failed.playbackStatus).toBe('failed')
+
+    const recovering = autoAt(455)
+    expect(recovering.currentMomentId).toBe('M17')
+    expect(recovering.recoveryStatus).toBe('recovering')
+
+    const recovered = autoAt(480)
+    expect(recovered.failureStatus).toBe('recovered')
+    expect(recovered.recoveryStatus).toBe('completed')
+  })
+
+  it('Presenter Mode injection gate is still active and legal at M15', () => {
+    const gate = presenterAtFailureGate()
+    expect(gate.playbackStatus).toBe('waiting_failure_injection')
+    expect(gate.currentMomentId).toBe('M15')
+    expect(selectControlAvailability(gate).canInjectFailure).toBe(true)
+    const afterInject = transitionRuntimeState(gate, { type: 'INJECT_FAILURE' })
+    expect(afterInject.currentMomentId).toBe('M16')
+    expect(afterInject.playbackStatus).toBe('failed')
+    expect(afterInject.failureStatus).toBe('active')
+  })
+
+  it('compensation remains Rp31,000,000', () => {
+    // autoAt(390) is post-approval (M14); build the waiting-approval state directly
+    const started = transitionRuntimeState(createInitialRuntimeState('auto'), { type: 'START' })
+    const waitingApproval = transitionRuntimeState(started, { type: 'ADVANCE_TIME', seconds: 390 })
+    const gate = selectApprovalGate(waitingApproval)
+    expect(waitingApproval.playbackStatus).toBe('waiting_approval')
+    expect(gate?.estimatedImpact).toBe('Rp31,000,000')
+    const finalOutcome = selectFinalOutcome(simulateAutoRun())
+    expect(finalOutcome?.sections[0].items).toContain('Rp31,000,000 compensation approved')
+  })
+
+  it('no FINANCE_POST_TIMEOUT or finance-posting failure language in active runtime output', () => {
+    const failureCopy = runtimeFixtures.timeline.failureRecovery.failureCopy
+    const recoveryCopy = runtimeFixtures.timeline.failureRecovery.recoveryCopy
+    expect(failureCopy).not.toContain('FINANCE_POST_TIMEOUT')
+    expect(recoveryCopy).not.toMatch(/finance posting/i)
+
+    const failedEvents = selectVisibleEvents(autoAt(435))
+    const eventText = failedEvents.map((e) => `${e.output} ${e.action}`).join(' ')
+    expect(eventText).not.toContain('FINANCE_POST_TIMEOUT')
+    expect(eventText).not.toMatch(/finance posting failed/i)
+
+    const nowNext = selectNowNext(autoAt(435))
+    expect(nowNext.now).not.toMatch(/finance posting/i)
+    expect(nowNext.now).not.toContain('FINANCE_POST_TIMEOUT')
+
+    const recoveryNowNext = selectNowNext(autoAt(455))
+    expect(recoveryNowNext.now).not.toMatch(/recovering finance/i)
   })
 })

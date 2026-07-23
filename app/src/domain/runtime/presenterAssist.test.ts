@@ -102,7 +102,7 @@ describe('selectPresenterAssist', () => {
     let failureGate = transitionRuntimeState(presenterAtApprovalGate(), { type: 'APPROVE' })
     failureGate = transitionRuntimeState(failureGate, { type: 'ADVANCE_TIME', seconds: 45 })
     const failureCue = guidance(failureGate)
-    expect(failureCue.nextAction).toBe('Inject the simulated finance failure')
+    expect(failureCue.nextAction).toBe('Inject the contractor rejection')
     expect(failureCue.remainingTime).toBe('Paused for presenter action')
   })
 

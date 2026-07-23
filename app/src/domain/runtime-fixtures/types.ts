@@ -205,7 +205,7 @@ export interface RuntimeMoment {
   readonly failureGate: null | {
     readonly action: 'inject_failure'
     readonly continuationMomentId: MomentId
-    readonly failureCode: 'FINANCE_POST_TIMEOUT'
+    readonly failureCode: 'CONTRACTOR_REJECTED'
   }
   readonly completion: {
     readonly presenter: RuntimeCompletionAction
@@ -254,7 +254,7 @@ export interface RuntimeTimelineFixture {
     readonly failureMomentId: MomentId
     readonly recoveringMomentId: MomentId
     readonly recoveredMomentId: MomentId
-    readonly failureCode: 'FINANCE_POST_TIMEOUT'
+    readonly failureCode: 'CONTRACTOR_REJECTED'
     readonly failureCopy: string
     readonly recoveryCopy: string
   }
@@ -291,7 +291,7 @@ export interface RuntimeFixtureBundle {
       readonly id: SceneId
       readonly stage: number
       readonly presenterPause: boolean
-      readonly failureCode?: 'FINANCE_POST_TIMEOUT'
+      readonly failureCode?: 'CONTRACTOR_REJECTED'
     }>
   }
   readonly timeline: RuntimeTimelineFixture

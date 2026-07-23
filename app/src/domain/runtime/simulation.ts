@@ -24,17 +24,23 @@ export function simulateAutoRun(
   const approvalGateSecond = approvalMoment === undefined
     ? fixtures.timeline.totalScheduledSeconds
     : approvalMoment.startSecond + approvalMoment.durationSeconds
+
+  const learningMoment = fixtures.timeline.moments.find(
+    (moment) => moment.id === fixtures.timeline.recommendation.availableAtMomentId,
+  )
+  const learningPauseEnd = learningMoment === undefined
+    ? fixtures.timeline.totalScheduledSeconds
+    : learningMoment.startSecond + learningMoment.durationSeconds
+
   return reduceRuntimeActions(
     createInitialRuntimeState('auto', fixtures),
     [
       { type: 'START' },
       { type: 'ADVANCE_TIME', seconds: approvalGateSecond },
       { type: 'APPROVE' },
-      {
-        type: 'ADVANCE_TIME',
-        seconds:
-          fixtures.timeline.totalScheduledSeconds - approvalGateSecond,
-      },
+      { type: 'ADVANCE_TIME', seconds: learningPauseEnd - approvalGateSecond },
+      { type: 'RESUME' },
+      { type: 'ADVANCE_TIME', seconds: fixtures.timeline.totalScheduledSeconds - learningPauseEnd },
     ],
     fixtures,
   )
@@ -57,7 +63,9 @@ export function simulatePresenterRun(
       { type: 'APPROVE' },
       { type: 'ADVANCE_TIME', seconds: 45 },
       { type: 'INJECT_FAILURE' },
-      { type: 'ADVANCE_TIME', seconds: 165 },
+      { type: 'ADVANCE_TIME', seconds: 135 },
+      { type: 'RESUME' },
+      { type: 'ADVANCE_TIME', seconds: 30 },
     ],
     fixtures,
   )

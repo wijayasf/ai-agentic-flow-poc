@@ -16,6 +16,7 @@ export type PresenterAssistPhase =
   | 'approved_processing'
   | 'failure'
   | 'recovery'
+  | 'learning'
   | 'approved_final'
   | 'rejected_outcome'
 
@@ -149,11 +150,11 @@ const CONTENT: Readonly<Record<PresenterAssistPhase, PresenterAssistContent>> = 
   human_approval: {
     stage: 'Human approval',
     keyMessage: 'The system can recommend, but a human must decide.',
-    talkingPoints: ['Evidence is summarized', 'Impact is shown as a simulated estimate', 'Rejection risk is visible', 'Auto Mode pauses here'],
+    talkingPoints: ['Evidence is summarized', 'Impact is shown as a simulated estimate', 'Rejection risk is visible', 'Auto Mode auto-approves after 10 seconds'],
     nextAction: 'Choose Approve or Reject',
     audienceFocus: 'Approval Card',
     whyItMatters: 'Human-in-the-loop control keeps a consequential customer and financial decision accountable.',
-    qaPrompts: [{ question: 'Can Auto Mode bypass human approval?', answer: 'No. Auto Mode pauses at the same gate and resumes only after an explicit human decision.' }],
+    qaPrompts: [{ question: 'Can Auto Mode bypass human approval?', answer: 'No. Auto Mode reaches the same gate and auto-approves after 10 seconds to allow unattended demonstration; Presenter Mode requires an explicit human decision.' }],
   },
   approved_processing: {
     stage: 'Approved processing',
@@ -166,21 +167,40 @@ const CONTENT: Readonly<Record<PresenterAssistPhase, PresenterAssistContent>> = 
   },
   failure: {
     stage: 'Failure',
-    keyMessage: 'The primary finance posting has failed, and the failure is visible rather than hidden.',
-    talkingPoints: ['The Finance Agent is blocked', 'The failure code is simulated', 'Recovery uses an explicit fallback path'],
-    nextAction: 'Explain the fallback recovery path',
-    audienceFocus: 'Finance Agent and failure status',
-    whyItMatters: 'Operational resilience requires failures to be observable, actionable, and recoverable.',
+    keyMessage: 'The assigned contractor has rejected the task, and the rejection is visible rather than hidden.',
+    talkingPoints: ['The Workflow Agent is blocked', 'The rejection code is simulated', 'Recovery reroutes to an alternative contractor'],
+    nextAction: 'Explain the rerouting recovery path',
+    audienceFocus: 'Workflow Agent and failure status',
+    whyItMatters: 'Operational resilience requires contractor rejections to be observable, actionable, and recoverable.',
     qaPrompts: [{ question: 'Does the POC retry indefinitely?', answer: 'No. It follows a deterministic recovery scenario so the behavior remains explainable and testable.' }],
   },
   recovery: {
     stage: 'Recovery',
-    keyMessage: 'The workflow is recovering the finance action through a controlled fallback path.',
-    talkingPoints: ['Completed evidence remains preserved', 'Only the blocked action is recovered', 'The trace records the recovery'],
-    nextAction: 'Allow recovery to complete',
-    audienceFocus: 'Finance Agent and recovery trace',
+    keyMessage: 'The Workflow Agent is rerouting the repair task to an alternative contractor.',
+    talkingPoints: ['Completed evidence remains preserved', 'Only the blocked task assignment is recovered', 'The trace records the rerouting'],
+    nextAction: 'Allow rerouting to complete',
+    audienceFocus: 'Workflow Agent and recovery trace',
     whyItMatters: 'Targeted recovery avoids restarting completed work or losing the human decision.',
     qaPrompts: [{ question: 'Would production recovery be identical?', answer: 'Not necessarily. Production retry, idempotency, and escalation rules would be designed for the connected systems.' }],
+  },
+  learning: {
+    stage: 'Learning',
+    keyMessage: 'One resolved case becomes reusable enterprise learning.',
+    talkingPoints: [
+      'Customer resolved and communication is scheduled',
+      '11 similar cases identified — same recurring SAP CX control gap',
+      'Preventive control recommendation is ready for the team',
+      'Continue to close the workflow',
+    ],
+    nextAction: 'Continue to complete the workflow',
+    audienceFocus: 'Final Outcome',
+    whyItMatters: 'Closing the loop from customer resolution to systemic prevention is the highest-value output of the agentic workflow.',
+    qaPrompts: [
+      {
+        question: 'Is this pattern detection automated?',
+        answer: 'In this POC the pattern is deterministic. Production would require similarity scoring and case cluster analysis.',
+      },
+    ],
   },
   approved_final: {
     stage: 'Approved final state',
@@ -216,6 +236,10 @@ function selectPhase(state: RuntimeState, viewModel: RuntimeViewModel): Presente
     (viewModel.currentMoment !== null && RECOVERY_MOMENTS.includes(viewModel.currentMoment.id))
   ) return 'recovery'
   if (viewModel.approvalGate !== null) return 'human_approval'
+  if (
+    state.playbackStatus === 'paused' &&
+    viewModel.currentMoment?.id === 'M20'
+  ) return 'learning'
   if (state.approvalStatus === 'approved') return 'approved_processing'
   if (viewModel.earlyStory.isIdle) return 'idle'
   if (viewModel.earlyStory.phase === 'customer_typing') return 'customer_typing'
@@ -261,10 +285,15 @@ function remainingTime(state: RuntimeState, viewModel: RuntimeViewModel): string
   )
 }
 
-function nextAction(content: PresenterAssistContent, viewModel: RuntimeViewModel): string {
+function nextAction(
+  content: PresenterAssistContent,
+  viewModel: RuntimeViewModel,
+  phase: PresenterAssistPhase,
+): string {
   if (viewModel.controls.canStart) return 'Press Start'
   if (viewModel.controls.canApprove || viewModel.controls.canReject) return 'Choose Approve or Reject'
-  if (viewModel.controls.canInjectFailure) return 'Inject the simulated finance failure'
+  if (viewModel.controls.canInjectFailure) return 'Inject the contractor rejection'
+  if (phase === 'learning') return content.nextAction
   if (viewModel.controls.canNextMoment) return 'Continue to the next moment'
   if (viewModel.controls.canResume) return 'Resume the current moment'
   return content.nextAction
@@ -295,7 +324,7 @@ export function selectPresenterAssist(
     stage: content.stage,
     keyMessage: content.keyMessage,
     talkingPoints: content.talkingPoints,
-    nextAction: nextAction(content, viewModel),
+    nextAction: nextAction(content, viewModel, phase),
     audienceFocus: focusLabel(viewModel.focusTarget) ?? content.audienceFocus,
     whyItMatters: content.whyItMatters,
     remainingTime: remainingTime(state, viewModel),
