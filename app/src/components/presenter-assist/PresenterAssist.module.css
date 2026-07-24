@@ -1,19 +1,16 @@
 .toggle {
-  position: fixed;
-  z-index: 80;
   display: inline-flex;
-  min-height: 44px;
+  height: 42px;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 0 14px;
   border: 1px solid #84adff;
-  border-radius: 11px;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+  box-shadow: var(--shadow-card);
   color: var(--color-primary-blue);
   font-size: 13px;
   font-weight: 700;
-  backdrop-filter: blur(10px);
 }
 
 .toggle strong {
@@ -38,14 +35,16 @@
   color: var(--color-primary-blue);
 }
 
-.toggle[data-variant='desktop'] {
-  top: 14px;
-  right: 260px;
-}
-
 .toggle[data-variant='mobile'] {
+  position: fixed;
+  z-index: 80;
   right: 14px;
   bottom: 14px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+  backdrop-filter: blur(10px);
 }
 
 .toggle[data-variant='mobile'][data-mobile-view='story'] {

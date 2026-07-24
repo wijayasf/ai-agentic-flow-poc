@@ -1,12 +1,9 @@
-import complaint from '@fixtures/complaints/complaint-leakage-001.json'
-import customer from '@fixtures/customers/customer-rina-putri.json'
-import { storyAssets } from '../../assets/story'
-import type { StoryAttachmentId } from '../../assets/story'
+import type { ReactNode } from 'react'
 import { Icon } from '../icon/Icon'
 import type { IconName } from '../icon/Icon'
 import { IconBadge } from '../primitives/IconBadge'
 import { PanelHeading } from '../primitives/PanelHeading'
-import { TypingIndicator } from '../primitives/TypingIndicator'
+import { CustomerPanel } from '../customer/CustomerPanel'
 import { lifecycleIcon } from '../agent-flow/lifecycleIcon'
 import { relayState } from '../agent-flow/relayState'
 import { systemPresentationState } from '../agent-flow/systemPresentationState'
@@ -33,6 +30,7 @@ export interface StaticShellProps {
   readonly actions: RuntimeControllerActions
   readonly canvasScale?: number
   readonly embedded?: boolean
+  readonly headerActions?: ReactNode
 }
 
 export const DESIGN_SURFACE_WIDTH = 1920
@@ -116,7 +114,13 @@ const SCENE_META: Record<SceneId, { index: number; label: string }> = {
 
 const DEMO_TAGLINE = 'AI-Powered Complaint Resolution Demo'
 
-function DemoHeader({ viewModel }: { viewModel: RuntimeViewModel }) {
+function DemoHeader({
+  viewModel,
+  headerActions,
+}: {
+  viewModel: RuntimeViewModel
+  headerActions?: ReactNode
+}) {
   const { timer, currentSceneId } = viewModel
   const sceneMeta = currentSceneId ? SCENE_META[currentSceneId] : null
   const subtitleText = sceneMeta
@@ -133,174 +137,20 @@ function DemoHeader({ viewModel }: { viewModel: RuntimeViewModel }) {
           <p className={styles.brandSubtitle}>{subtitleText}</p>
         </div>
       </div>
-      <div
-        className={styles.timerVisual}
-        aria-label={`Demo time ${timer.elapsedText} of ${timer.totalText}`}
-      >
-        <Icon name="clock" size={19} aria-hidden="true" />
-        <span>Demo Time</span>
-        <time dateTime={`PT${timer.elapsedSeconds}S`}>{timer.elapsedText}</time>
-        <span aria-hidden="true">/</span>
-        <span>{timer.totalText}</span>
+      <div className={styles.headerActions}>
+        {headerActions}
+        <div
+          className={styles.timerVisual}
+          aria-label={`Demo time ${timer.elapsedText} of ${timer.totalText}`}
+        >
+          <Icon name="clock" size={19} aria-hidden="true" />
+          <span>Demo Time</span>
+          <time dateTime={`PT${timer.elapsedSeconds}S`}>{timer.elapsedText}</time>
+          <span aria-hidden="true">/</span>
+          <span>{timer.totalText}</span>
+        </div>
       </div>
     </header>
-  )
-}
-
-function AttachmentPreview({ attachmentId }: { attachmentId: StoryAttachmentId }) {
-  const asset = storyAssets.attachments[attachmentId]
-  return (
-    <span className={styles.attachmentVisual}>
-      <img alt={asset.alt} height="640" src={asset.src} width="640" />
-      <span className={styles.fileTypeIcon} aria-hidden="true">
-        <Icon name={asset.icon} size={14} />
-      </span>
-    </span>
-  )
-}
-
-function IdleDemoFraming() {
-  return (
-    <article className={styles.idleDemoCard} aria-labelledby="demo-ready-heading">
-      <span className={styles.idleDemoIcon} aria-hidden="true">
-        <Icon name="flow" size={30} />
-      </span>
-      <p className={styles.idleEyebrow}>Guided enterprise simulation</p>
-      <h3 id="demo-ready-heading">See AI collaboration unfold step by step</h3>
-      <p className={styles.idleDescription}>
-        This guided demo shows how multiple AI agents collaborate to investigate a
-        customer complaint, validate evidence, detect conflicts, and prepare a
-        recommendation for human approval.
-      </p>
-      <div className={styles.readyStatus} role="status">
-        <span aria-hidden="true"><Icon name="check" size={15} /></span>
-        <strong>Demo is ready. Press Start to begin.</strong>
-      </div>
-    </article>
-  )
-}
-
-function CustomerExperiencePanel({
-  viewModel,
-}: {
-  readonly viewModel: RuntimeViewModel
-}) {
-  const { earlyStory } = viewModel
-  const visibleAttachments = complaint.attachments.slice(
-    0,
-    earlyStory.visibleAttachmentCount,
-  )
-
-  return (
-    <section
-      className={`${styles.panel} ${styles.customerPanel}`}
-      data-focus={
-        viewModel.focusTarget === null
-          ? undefined
-          : viewModel.focusTarget === 'customer-panel'
-            ? 'primary'
-            : 'secondary'
-      }
-      aria-labelledby="customer-experience-heading"
-    >
-      <PanelHeading id="customer-experience-heading" icon="user">
-        Customer Experience
-      </PanelHeading>
-
-      {earlyStory.isIdle ? <IdleDemoFraming /> : null}
-
-      {earlyStory.showCustomerTyping ? (
-        <div className={styles.customerTypingPosition}>
-          <TypingIndicator label="Customer is typing" tone="customer" />
-        </div>
-      ) : null}
-
-      {earlyStory.showCustomerIdentity ? (
-        <article
-          className={`${styles.customerCard} ${styles.storyReveal}`}
-          aria-label="Customer complaint"
-        >
-          <div className={styles.customerIdentity}>
-            <img
-              alt={storyAssets.customerAvatar.alt}
-              className={styles.customerAvatar}
-              height="640"
-              src={storyAssets.customerAvatar.src}
-              width="640"
-            />
-            <strong>{customer.name}</strong>
-            <time dateTime={complaint.createdAt}>09:15 AM</time>
-          </div>
-          {earlyStory.showCustomerMessage ? (
-            <p className={`${styles.customerMessage} ${styles.storyReveal}`}>
-              {complaint.message}
-            </p>
-          ) : null}
-          {visibleAttachments.length > 0 ? (
-            <fieldset className={`${styles.attachments} ${styles.storyReveal}`}>
-              <legend>
-                Attachments ({visibleAttachments.length} of {complaint.attachments.length})
-              </legend>
-              <div className={styles.attachmentGrid}>
-                {visibleAttachments.map((attachment) => (
-                  <article
-                    className={`${styles.attachmentCard} ${styles.storyReveal}`}
-                    key={attachment.id}
-                  >
-                    <AttachmentPreview
-                      attachmentId={attachment.id as StoryAttachmentId}
-                    />
-                    <strong>{attachment.name}</strong>
-                    <span>.{attachment.extension}</span>
-                  </article>
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
-        </article>
-      ) : null}
-
-      {earlyStory.showAiTyping ? (
-        <div className={styles.officerTypingPosition}>
-          <TypingIndicator label="AI Resolution Officer is typing" tone="ai" />
-        </div>
-      ) : null}
-
-      {earlyStory.showAiAcknowledgement ? (
-        <article
-          className={`${styles.officerCard} ${styles.storyReveal}`}
-          aria-labelledby="officer-heading"
-        >
-          <div className={styles.officerHeader}>
-            <IconBadge icon="bot" tone="blue" />
-            <strong id="officer-heading">AI Resolution Officer</strong>
-            <time dateTime="09:16:00">09:16 AM</time>
-          </div>
-          <p>
-            Thank you, Rina. I’ve received your complaint and attachments. I’m
-            reviewing with the right systems and experts. I’ll keep you updated
-            daily until this is resolved.
-          </p>
-          <span className={styles.verifiedMark} aria-label="Verified response">
-            <Icon name="check" size={12} aria-hidden="true" />
-          </span>
-        </article>
-      ) : null}
-
-      {earlyStory.showCustomerMessage ? (
-        <div
-          className={`${styles.statusChips} ${styles.storyReveal}`}
-          aria-label="Customer service commitments"
-        >
-          <span className={styles.dangerChip}>
-            <span aria-hidden="true"><Icon name="alert" size={14} /></span> High Priority
-          </span>
-          <span className={styles.warningChip}>
-            <span aria-hidden="true"><Icon name="clock" size={14} /></span> Daily Update Promise
-          </span>
-        </div>
-      ) : null}
-    </section>
   )
 }
 
@@ -586,42 +436,46 @@ function AgenticFlowPanel({
       <PanelHeading id="agentic-flow-heading" icon="flow">
         Agentic Flow
       </PanelHeading>
-      <NowNext viewModel={viewModel} />
-      <StageStepper viewModel={viewModel} />
-      <article className={styles.commanderCard} aria-label="Case Commander">
-        <IconBadge icon="sparkles" tone="blue" />
-        <div>
-          <strong>Case Commander</strong>
-          <span>Orchestrating agents and resolving conflicts</span>
+      <div className={styles.flowBody}>
+        <NowNext viewModel={viewModel} />
+        <StageStepper viewModel={viewModel} />
+        <article className={styles.commanderCard} aria-label="Case Commander">
+          <IconBadge icon="sparkles" tone="blue" />
+          <div>
+            <strong>Case Commander</strong>
+            <span>Orchestrating agents and resolving conflicts</span>
+          </div>
+        </article>
+        <div className={styles.flowAgentStack}>
+          <div
+            className={styles.connectorRail}
+            data-testid="agent-connector-rail"
+            aria-hidden="true"
+          >
+            {viewModel.agentLifecycle.map((agent) => (
+              <span data-state={agent.status} key={agent.agentId} />
+            ))}
+          </div>
+          <AgentGrid viewModel={viewModel} />
+          <AgentRelay viewModel={viewModel} />
+          <div className={styles.systemConnectors} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <SystemGrid
+            state={state}
+            workflowIntroduced={viewModel.earlyStory.workflowIntroduced}
+          />
         </div>
-      </article>
-      <div
-        className={styles.connectorRail}
-        data-testid="agent-connector-rail"
-        aria-hidden="true"
-      >
-        {viewModel.agentLifecycle.map((agent) => (
-          <span data-state={agent.status} key={agent.agentId} />
-        ))}
+        {viewModel.transition === null ? (
+          <ConflictStatus state={state} />
+        ) : (
+          <TransitionStatus viewModel={viewModel} />
+        )}
+        <ActivityTraceTable viewModel={viewModel} />
       </div>
-      <AgentGrid viewModel={viewModel} />
-      <AgentRelay viewModel={viewModel} />
-      <div className={styles.systemConnectors} aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <SystemGrid
-        state={state}
-        workflowIntroduced={viewModel.earlyStory.workflowIntroduced}
-      />
-      {viewModel.transition === null ? (
-        <ConflictStatus state={state} />
-      ) : (
-        <TransitionStatus viewModel={viewModel} />
-      )}
-      <ActivityTraceTable viewModel={viewModel} />
     </section>
   )
 }
@@ -1003,28 +857,32 @@ function TrustObservabilityPanel(props: StaticShellProps) {
       <PanelHeading id="trust-heading" icon="shield">
         Trust &amp; Observability
       </PanelHeading>
-      <MetricGrid viewModel={props.viewModel} />
-      {isIdle ? (
-        <ObservabilityIdleState />
-      ) : props.viewModel.finalOutcome !== null ? (
-        <FinalOutcome viewModel={props.viewModel} />
-      ) : props.viewModel.approvalGate !== null ? (
-        <ApprovalDecisionCard
-          viewModel={props.viewModel}
-          actions={props.actions}
-        />
-      ) : (
-        <>
-          <ArtifactList viewModel={props.viewModel} />
-          {props.viewModel.outcomePreview !== null ? (
-            <OutcomePreview viewModel={props.viewModel} />
-          ) : shouldShowContextCard(props.state, props.viewModel) ? (
-            <ContextStatusCard {...props} />
+      <div className={styles.trustBody}>
+        <MetricGrid viewModel={props.viewModel} />
+        <div className={styles.trustContent}>
+          {isIdle ? (
+            <ObservabilityIdleState />
+          ) : props.viewModel.finalOutcome !== null ? (
+            <FinalOutcome viewModel={props.viewModel} />
+          ) : props.viewModel.approvalGate !== null ? (
+            <ApprovalDecisionCard
+              viewModel={props.viewModel}
+              actions={props.actions}
+            />
           ) : (
-            <DecisionRationale viewModel={props.viewModel} />
+            <>
+              <ArtifactList viewModel={props.viewModel} />
+              {props.viewModel.outcomePreview !== null ? (
+                <OutcomePreview viewModel={props.viewModel} />
+              ) : shouldShowContextCard(props.state, props.viewModel) ? (
+                <ContextStatusCard {...props} />
+              ) : (
+                <DecisionRationale viewModel={props.viewModel} />
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </div>
     </section>
   )
 }
@@ -1146,9 +1004,12 @@ export function StaticShell(props: StaticShellProps) {
           data-testid="canonical-design-surface"
           style={{ transform: `scale(${canvasScale})` }}
         >
-          <DemoHeader viewModel={props.viewModel} />
+          <DemoHeader
+            viewModel={props.viewModel}
+            headerActions={props.headerActions}
+          />
           <div className={styles.workspace}>
-            <CustomerExperiencePanel viewModel={props.viewModel} />
+            <CustomerPanel viewModel={props.viewModel} />
             <AgenticFlowPanel state={props.state} viewModel={props.viewModel} />
             <TrustObservabilityPanel {...props} />
           </div>

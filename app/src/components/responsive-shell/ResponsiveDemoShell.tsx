@@ -40,10 +40,16 @@ function useViewportSize(): ViewportSize {
   return size
 }
 
-function controlRoomScale(layout: ResponsiveLayout, width: number): number {
-  const fitWidth = Math.min(1, (width - VIEWPORT_GUTTER) / DESIGN_SURFACE_WIDTH)
-  if (layout === 'desktop') return Math.max(0.7, fitWidth)
-  return Math.max(0.72, Math.min(0.82, fitWidth))
+function controlRoomScale(
+  layout: ResponsiveLayout,
+  width: number,
+  height: number,
+): number {
+  const fitWidth = (width - VIEWPORT_GUTTER) / DESIGN_SURFACE_WIDTH
+  const fitHeight = (height - VIEWPORT_GUTTER) / DESIGN_SURFACE_HEIGHT
+  const fit = Math.min(1, fitWidth, fitHeight)
+  if (layout === 'desktop') return Math.max(0.7, fit)
+  return Math.max(0.72, Math.min(0.82, fit))
 }
 
 function MobileEntry({
@@ -145,14 +151,32 @@ export function ResponsiveDemoShell(props: StaticShellProps) {
     presenterAssistToggleRef.current?.focus()
   }
 
+  const togglePresenterAssist = () => {
+    if (presenterAssistOpen) closePresenterAssist()
+    else setPresenterAssistOpen(true)
+  }
+
   let experience
 
   if (!isMobile) {
-    const scale = controlRoomScale(layout, size.width)
+    const scale = controlRoomScale(layout, size.width, size.height)
+    const desktopHeaderActions = (
+      <PresenterAssistToggle
+        buttonRef={presenterAssistToggleRef}
+        open={presenterAssistOpen}
+        onToggle={togglePresenterAssist}
+        variant="desktop"
+      />
+    )
     experience = (
       <main className={styles.responsiveRoot} data-responsive-layout={layout}>
         <div className={styles.controlRoomScroller} role="region" aria-label={`${layout} control room`}>
-          <StaticShell {...props} canvasScale={scale} embedded />
+          <StaticShell
+            {...props}
+            canvasScale={scale}
+            embedded
+            headerActions={desktopHeaderActions}
+          />
         </div>
       </main>
     )
@@ -184,16 +208,15 @@ export function ResponsiveDemoShell(props: StaticShellProps) {
   return (
     <>
       {experience}
-      <PresenterAssistToggle
-        buttonRef={presenterAssistToggleRef}
-        open={presenterAssistOpen}
-        onToggle={() => {
-          if (presenterAssistOpen) closePresenterAssist()
-          else setPresenterAssistOpen(true)
-        }}
-        variant={isMobile ? 'mobile' : 'desktop'}
-        mobileView={isMobile ? mobileView : undefined}
-      />
+      {isMobile ? (
+        <PresenterAssistToggle
+          buttonRef={presenterAssistToggleRef}
+          open={presenterAssistOpen}
+          onToggle={togglePresenterAssist}
+          variant="mobile"
+          mobileView={mobileView}
+        />
+      ) : null}
       {presenterAssistOpen ? (
         <PresenterAssistSurface
           model={presenterAssistModel}

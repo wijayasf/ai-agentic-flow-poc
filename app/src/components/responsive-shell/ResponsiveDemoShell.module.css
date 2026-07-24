@@ -1,13 +1,19 @@
 .responsiveRoot {
+  display: grid;
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
   background: var(--color-canvas);
+  place-items: center;
 }
 
 .controlRoomScroller {
-  width: 100%;
-  min-height: 100vh;
+  display: flex;
+  max-width: 100%;
+  max-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -905,8 +911,6 @@ button:focus-visible,
 
 @media (min-width: 1200px) {
   .controlRoomScroller {
-    display: grid;
-    place-items: start center;
     padding: 12px;
   }
 }
