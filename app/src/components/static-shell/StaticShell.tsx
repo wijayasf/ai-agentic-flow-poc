@@ -4,13 +4,20 @@ import { storyAssets } from '../../assets/story'
 import type { StoryAttachmentId } from '../../assets/story'
 import { Icon } from '../icon/Icon'
 import type { IconName } from '../icon/Icon'
+import { IconBadge } from '../primitives/IconBadge'
+import { PanelHeading } from '../primitives/PanelHeading'
+import { TypingIndicator } from '../primitives/TypingIndicator'
+import { lifecycleIcon } from '../agent-flow/lifecycleIcon'
+import { relayState } from '../agent-flow/relayState'
+import { systemPresentationState } from '../agent-flow/systemPresentationState'
+import { artifactTrailingGlyph } from '../trust/artifactTrailingGlyph'
+import { shouldShowContextCard } from '../trust/shouldShowContextCard'
 import type {
   AgentId,
   SystemId,
 } from '../../domain/runtime-fixtures/types'
 import type {
   AgentLifecycleStatus,
-  ArtifactPresentation,
   RuntimeState,
   RuntimeViewModel,
 } from '../../domain/runtime'
@@ -97,33 +104,6 @@ const artifactIcons: readonly IconName[] = [
   'shield',
 ]
 
-function IconBadge({ icon, tone }: { icon: IconName; tone: Tone }) {
-  return (
-    <span className={styles.glyph} data-tone={tone} aria-hidden="true">
-      <Icon name={icon} size={21} />
-    </span>
-  )
-}
-
-function PanelHeading({
-  id,
-  icon,
-  children,
-}: {
-  id: string
-  icon: IconName
-  children: string
-}) {
-  return (
-    <h2 className={styles.panelHeading} id={id}>
-      <span className={styles.panelGlyph} aria-hidden="true">
-        <Icon name={icon} size={18} />
-      </span>
-      {children}
-    </h2>
-  )
-}
-
 function DemoHeader({ viewModel }: { viewModel: RuntimeViewModel }) {
   const { timer } = viewModel
   return (
@@ -159,31 +139,6 @@ function AttachmentPreview({ attachmentId }: { attachmentId: StoryAttachmentId }
         <Icon name={asset.icon} size={14} />
       </span>
     </span>
-  )
-}
-
-function TypingIndicator({
-  label,
-  tone,
-}: {
-  readonly label: string
-  readonly tone: 'customer' | 'ai'
-}) {
-  return (
-    <div
-      className={styles.typingIndicator}
-      data-tone={tone}
-      role="status"
-      aria-label={label}
-    >
-      <Icon name={tone === 'customer' ? 'message' : 'bot'} size={18} />
-      <span className={styles.typingDots} aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-      <span>{label}</span>
-    </div>
   )
 }
 
@@ -387,23 +342,6 @@ const lifecycleLabels: Readonly<Record<AgentLifecycleStatus, string>> = {
   blocked: 'Blocked',
 }
 
-function lifecycleIcon(status: AgentLifecycleStatus): IconName {
-  switch (status) {
-    case 'waiting':
-      return 'clock'
-    case 'working':
-      return 'activity'
-    case 'needs_review':
-      return 'approval'
-    case 'completed':
-      return 'check'
-    case 'blocked':
-      return 'alert'
-    default:
-      return status satisfies never
-  }
-}
-
 function AgentGrid({
   viewModel,
 }: {
@@ -444,17 +382,6 @@ function AgentGrid({
   )
 }
 
-function relayState(
-  from: AgentLifecycleStatus,
-  to: AgentLifecycleStatus,
-): AgentLifecycleStatus {
-  if (to === 'blocked') return 'blocked'
-  if (to === 'needs_review') return 'needs_review'
-  if (from === 'working' || to === 'working') return 'working'
-  if (from === 'completed' && to === 'completed') return 'completed'
-  return 'waiting'
-}
-
 function AgentRelay({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
   return (
     <div
@@ -473,18 +400,6 @@ function AgentRelay({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
       ))}
     </div>
   )
-}
-
-function systemPresentationState(
-  state: RuntimeState,
-  systemId: SystemId,
-): 'inactive' | 'engaged' | 'failed' | 'recovering' | 'resolved' {
-  if (!state.activeSystemIds.includes(systemId)) return 'inactive'
-  if (systemId !== 'system-sap-s4hana') return 'engaged'
-  if (state.playbackStatus === 'failed') return 'failed'
-  if (state.playbackStatus === 'recovering') return 'recovering'
-  if (state.failureStatus === 'recovered') return 'resolved'
-  return 'engaged'
 }
 
 function SystemGrid({
@@ -751,21 +666,6 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
   )
 }
 
-function artifactTrailingGlyph(status: ArtifactPresentation['status']) {
-  switch (status) {
-    case 'locked':
-      return '⌑'
-    case 'pending':
-      return '◷'
-    case 'approved':
-      return '✓'
-    case 'available':
-      return '›'
-    default:
-      return status satisfies never
-  }
-}
-
 function ArtifactList({ viewModel }: { viewModel: RuntimeViewModel }) {
   const availableArtifacts = viewModel.artifacts.filter(
     (artifact) => artifact.status !== 'locked',
@@ -965,15 +865,6 @@ function FinalOutcome({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
         ))}
       </div>
     </article>
-  )
-}
-
-function shouldShowContextCard(state: RuntimeState, viewModel: RuntimeViewModel) {
-  return (
-    viewModel.earlyStory.showIntakeContext ||
-    state.playbackStatus === 'waiting_failure_injection' ||
-    viewModel.context.type !== 'neutral' ||
-    state.approvalStatus === 'approved'
   )
 }
 
