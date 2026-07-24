@@ -14,6 +14,7 @@ import { artifactTrailingGlyph } from '../trust/artifactTrailingGlyph'
 import { shouldShowContextCard } from '../trust/shouldShowContextCard'
 import type {
   AgentId,
+  SceneId,
   SystemId,
 } from '../../domain/runtime-fixtures/types'
 import type {
@@ -34,8 +35,8 @@ export interface StaticShellProps {
   readonly embedded?: boolean
 }
 
-export const DESIGN_SURFACE_WIDTH = 1672
-export const DESIGN_SURFACE_HEIGHT = 941
+export const DESIGN_SURFACE_WIDTH = 1920
+export const DESIGN_SURFACE_HEIGHT = 1080
 
 const agents: ReadonlyArray<{
   id: AgentId
@@ -104,17 +105,33 @@ const artifactIcons: readonly IconName[] = [
   'shield',
 ]
 
+const SCENE_META: Record<SceneId, { index: number; label: string }> = {
+  'scene-intake': { index: 1, label: 'Intake' },
+  'scene-investigation': { index: 2, label: 'Investigation' },
+  'scene-conflict': { index: 3, label: 'Conflict' },
+  'scene-approval': { index: 4, label: 'Approval' },
+  'scene-failure-recovery': { index: 5, label: 'Recovery' },
+  'scene-resolution': { index: 6, label: 'Resolution' },
+}
+
+const DEMO_TAGLINE = 'AI-Powered Complaint Resolution Demo'
+
 function DemoHeader({ viewModel }: { viewModel: RuntimeViewModel }) {
-  const { timer } = viewModel
+  const { timer, currentSceneId } = viewModel
+  const sceneMeta = currentSceneId ? SCENE_META[currentSceneId] : null
+  const subtitleText = sceneMeta
+    ? `Scene ${sceneMeta.index} · ${sceneMeta.label}`
+    : DEMO_TAGLINE
   return (
     <header className={styles.header}>
       <div className={styles.brandGroup}>
         <span className={styles.brandMark} aria-hidden="true">
           <Icon name="flow" size={31} strokeWidth={1.7} />
         </span>
-        <h1>AI Agentic Flow</h1>
-        <span className={styles.headerDivider} aria-hidden="true" />
-        <p>AI-Powered Complaint Resolution Demo</p>
+        <div className={styles.brandTitleStack}>
+          <h1>AI Agentic Flow</h1>
+          <p className={styles.brandSubtitle}>{subtitleText}</p>
+        </div>
       </div>
       <div
         className={styles.timerVisual}

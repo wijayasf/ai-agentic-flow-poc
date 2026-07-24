@@ -44,7 +44,7 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 
-  --design-surface-width: 1672px;
-  --design-surface-height: 941px;
-  --design-surface-secondary-scale: 0.8608;
+  --design-surface-width: 1920px;
+  --design-surface-height: 1080px;
+  --design-surface-secondary-scale: 0.75;
 }

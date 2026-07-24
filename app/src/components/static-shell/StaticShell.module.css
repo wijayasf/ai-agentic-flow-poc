@@ -33,26 +33,33 @@
   top: 18px;
   left: 18px;
   display: flex;
-  width: 1636px;
-  height: 42px;
+  width: 1884px;
+  height: 72px;
   align-items: center;
   justify-content: space-between;
 }
 
 .brandGroup {
   display: flex;
-  height: 42px;
+  height: 72px;
   align-items: center;
+  gap: 16px;
 }
 
-.brandGroup h1,
-.brandGroup p {
+.brandTitleStack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.brandTitleStack h1,
+.brandTitleStack p {
   margin: 0;
   white-space: nowrap;
 }
 
-.brandGroup h1 {
-  margin-left: 16px;
+.brandTitleStack h1 {
   color: var(--color-text-strong);
   font-size: 30px;
   font-weight: 760;
@@ -60,9 +67,11 @@
   line-height: 36px;
 }
 
-.brandGroup p {
-  font-size: 18px;
-  line-height: 24px;
+.brandSubtitle {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
 }
 
 .brandMark {
@@ -75,13 +84,6 @@
   background: var(--color-primary-tint);
   color: var(--color-primary-blue);
   box-shadow: 0 4px 12px rgba(21, 94, 239, 0.1);
-}
-
-.headerDivider {
-  width: 1px;
-  height: 29px;
-  margin: 0 21px;
-  background: #aeb7c5;
 }
 
 .timerVisual {
@@ -109,17 +111,17 @@
 
 .workspace {
   position: absolute;
-  top: 70px;
+  top: 100px;
   left: 18px;
   display: grid;
-  width: 1636px;
-  height: 740px;
-  grid-template-columns: 456px 19px 715px 16px 430px;
+  width: 1884px;
+  height: 848px;
+  grid-template-columns: 527px 19px 829px 16px 493px;
 }
 
 .panel {
   position: relative;
-  height: 740px;
+  height: 848px;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-panel);
@@ -2020,12 +2022,12 @@
 
 .playbackBar {
   position: absolute;
-  top: 825px;
+  top: 966px;
   left: 18px;
   display: grid;
-  width: 1636px;
-  height: 98px;
-  grid-template-columns: 309px 907px 1px 419px;
+  width: 1884px;
+  height: 96px;
+  grid-template-columns: 309px 1155px 1px 419px;
   align-items: center;
   border: 1px solid #e1e6ed;
   border-radius: var(--radius-panel);
@@ -2240,7 +2242,7 @@
   border: 0;
 }
 
-@media (max-width: 1440px) and (max-height: 810px) {
+@media (max-width: 1919px) and (max-height: 1079px) {
   .viewport {
     overflow: hidden;
   }
