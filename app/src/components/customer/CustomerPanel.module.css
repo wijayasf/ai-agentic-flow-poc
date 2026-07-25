@@ -100,13 +100,27 @@
   line-height: 20px;
 }
 
+.officerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.officerChipRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .verifiedMark {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
   display: grid;
   width: 18px;
   height: 18px;
+  flex: 0 0 auto;
   place-items: center;
   border-radius: var(--radius-round);
   background: var(--color-primary-blue);

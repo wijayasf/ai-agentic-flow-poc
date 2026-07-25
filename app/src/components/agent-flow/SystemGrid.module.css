@@ -1,0 +1,71 @@
+.grid {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.card strong {
+  max-width: 100px;
+  color: var(--color-text-strong);
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.card[data-state='inactive'] {
+  border-color: #e5e9ef;
+  opacity: 0.62;
+}
+
+.card[data-state='engaged'] {
+  border-color: #9ec5f8;
+}
+
+.card[data-state='failed'] {
+  border-color: var(--color-danger);
+}
+
+.card[data-state='recovering'] {
+  border-color: var(--color-warning);
+}
+
+.card[data-state='resolved'] {
+  border-color: var(--color-success);
+}
+
+.placeholder {
+  display: grid;
+  min-width: 32px;
+  height: 24px;
+  place-items: center;
+  border-radius: 6px;
+  background: #edf4ff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.placeholder[data-tone='green'] {
+  background: #e3f8e9;
+}
+
+.placeholder[data-tone='violet'] {
+  background: #f0eaff;
+}
+
+.placeholder[data-tone='orange'] {
+  background: #fff0df;
+}

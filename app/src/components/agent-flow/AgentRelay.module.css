@@ -1,0 +1,66 @@
+.relay {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 4px;
+  margin: -2px 0;
+  pointer-events: none;
+}
+
+.relay span {
+  --connector-color: #b9c2cf;
+  position: absolute;
+  width: 15px;
+  height: 2px;
+  background: var(--connector-color);
+}
+
+.relay span:nth-child(1) {
+  left: calc(25% - 4px);
+}
+
+.relay span:nth-child(2) {
+  left: calc(50% - 4px);
+}
+
+.relay span:nth-child(3) {
+  left: calc(75% - 4px);
+}
+
+.relay span::after {
+  position: absolute;
+  top: -3px;
+  right: -1px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--connector-color);
+  content: '';
+}
+
+.relay span[data-state='working'] {
+  background: repeating-linear-gradient(
+    to right,
+    var(--connector-color) 0 4px,
+    transparent 4px 8px
+  );
+  background-size: 8px 100%;
+  animation: connectorFlowHorizontal 0.7s linear infinite;
+}
+
+.relay span[data-state='completed'] {
+  --connector-color: var(--color-success);
+}
+
+.relay span[data-state='needs_review'] {
+  --connector-color: var(--color-warning);
+}
+
+.relay span[data-state='blocked'] {
+  --connector-color: var(--color-danger);
+}
+
+@keyframes connectorFlowHorizontal {
+  to {
+    background-position: 8px 0;
+  }
+}

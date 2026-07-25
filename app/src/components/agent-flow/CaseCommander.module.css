@@ -1,0 +1,31 @@
+.card {
+  display: grid;
+  width: 316px;
+  height: 69px;
+  grid-template-columns: 62px 1fr;
+  align-items: center;
+  align-self: center;
+  border: 1px solid #b8d2ff;
+  border-radius: 10px;
+  background: #f7faff;
+  box-shadow: var(--shadow-card-active);
+}
+
+.card > span:first-child {
+  margin-left: 15px;
+}
+
+.card > div {
+  display: grid;
+  gap: 3px;
+}
+
+.card > div strong {
+  color: var(--color-text-strong);
+  font-size: 15px;
+}
+
+.card > div span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+}

@@ -1,0 +1,37 @@
+.banner {
+  display: grid;
+  width: 100%;
+  height: 62px;
+  grid-template-columns: 65px 1fr;
+  align-items: center;
+  border: 1px solid #a9caff;
+  border-radius: 8px;
+  background: var(--color-primary-tint);
+}
+
+.banner > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-left: 24px;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: var(--color-primary-blue);
+  color: var(--color-surface);
+}
+
+.banner p {
+  display: grid;
+  margin: 0 14px 0 17px;
+  gap: 3px;
+}
+
+.banner strong {
+  color: #173f7a;
+  font-size: 15px;
+}
+
+.banner small {
+  color: #344054;
+  font-size: 12px;
+}

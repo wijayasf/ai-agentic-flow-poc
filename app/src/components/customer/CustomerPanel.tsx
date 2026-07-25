@@ -8,6 +8,7 @@ import shellStyles from '../static-shell/StaticShell.module.css'
 import { AttachmentList } from './AttachmentList'
 import { ComplaintCard } from './ComplaintCard'
 import type { ComplaintChip } from './ComplaintCard'
+import complaintChipStyles from './ComplaintCard.module.css'
 import { CustomerIdentity } from './CustomerIdentity'
 import { IdleDemoFraming } from './IdleDemoFraming'
 import styles from './CustomerPanel.module.css'
@@ -22,21 +23,26 @@ const PRIORITY_CHIP: Record<string, ComplaintChip> = {
   high: { tone: 'danger', icon: 'alert', label: 'High Priority' },
 }
 
-const DAILY_UPDATE_CHIP: ComplaintChip = {
+const OFFICER_PROMISE_CHIP: ComplaintChip = {
   tone: 'warning',
   icon: 'clock',
   label: 'Daily Update Promise',
+}
+
+const CHIP_TONE_CLASS: Record<ComplaintChip['tone'], string> = {
+  danger: complaintChipStyles.chipDanger,
+  warning: complaintChipStyles.chipWarning,
 }
 
 function segmentLabel(segment: string): string {
   return CUSTOMER_SEGMENT_LABEL[segment] ?? segment
 }
 
-function complaintChips(priority: string): ComplaintChip[] {
-  const chips: ComplaintChip[] = []
+function officerCommitmentChips(priority: string): ComplaintChip[] {
   const priorityChip = PRIORITY_CHIP[priority]
+  const chips: ComplaintChip[] = []
   if (priorityChip) chips.push(priorityChip)
-  chips.push(DAILY_UPDATE_CHIP)
+  chips.push(OFFICER_PROMISE_CHIP)
   return chips
 }
 
@@ -101,7 +107,6 @@ export function CustomerPanel({
                 createdAt={complaint.createdAt}
                 timestampDisplay="09:15 AM"
                 message={complaint.message}
-                chips={complaintChips(customer.priority)}
               />
             </div>
           ) : null}
@@ -146,9 +151,25 @@ export function CustomerPanel({
                 experts. I&rsquo;ll keep you updated daily until this is
                 resolved.
               </p>
-              <span className={styles.verifiedMark} aria-label="Verified response">
-                <Icon name="check" size={12} aria-hidden="true" />
-              </span>
+              <div
+                className={styles.officerFooter}
+                aria-label="AI Resolution Officer commitments"
+              >
+                <div className={styles.officerChipRow}>
+                  {officerCommitmentChips(customer.priority).map((chip) => (
+                    <span
+                      className={`${complaintChipStyles.chip} ${CHIP_TONE_CLASS[chip.tone]}`}
+                      key={chip.label}
+                    >
+                      <Icon name={chip.icon} size={12} aria-hidden="true" />
+                      {chip.label}
+                    </span>
+                  ))}
+                </div>
+                <span className={styles.verifiedMark} aria-label="Verified response">
+                  <Icon name="check" size={12} aria-hidden="true" />
+                </span>
+              </div>
             </article>
           ) : null}
         </div>
