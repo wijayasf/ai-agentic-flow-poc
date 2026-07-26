@@ -58,6 +58,54 @@
   box-shadow: 0 4px 12px rgba(21, 94, 239, 0.06);
 }
 
+.officerRevealRoot {
+  animation: officerContainerReveal 200ms ease-out both;
+}
+
+.officerRevealRoot [data-reveal-block='header'] {
+  animation: officerBlockReveal 320ms ease-out both;
+  animation-delay: 60ms;
+}
+
+.officerRevealRoot [data-reveal-block='message'] {
+  animation: officerBlockReveal 380ms ease-out both;
+  animation-delay: 260ms;
+}
+
+.officerRevealRoot [data-reveal-block='footer'] {
+  animation: officerBlockReveal 240ms ease-out both;
+  animation-delay: 0ms;
+}
+
+.officerCursor {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  margin-left: 4px;
+  vertical-align: -1px;
+  background: #123a78;
+  opacity: 0;
+  animation: officerCursorLifecycle 1400ms steps(1, end) 260ms both;
+}
+
+.officerChip {
+  opacity: 0;
+}
+
+.officerRevealRoot .officerChip[data-chip='high-priority'] {
+  animation: officerChipReveal 320ms ease-out 120ms both,
+    officerHighPriorityPulse 720ms ease-out 440ms 1 both;
+}
+
+.officerRevealRoot .officerChip[data-chip='daily-update'] {
+  animation: officerChipReveal 320ms ease-out 420ms both;
+}
+
+.officerRevealRoot [data-reveal-block='verified'] {
+  opacity: 0;
+  animation: officerChipReveal 320ms ease-out 720ms both;
+}
+
 .officerHeader {
   display: flex;
   align-items: center;
@@ -145,5 +193,105 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes officerContainerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes officerBlockReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes officerCursorLifecycle {
+  0% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes officerChipReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes officerHighPriorityPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(217, 45, 32, 0);
+  }
+  35% {
+    transform: scale(1.09);
+    box-shadow: 0 0 0 6px rgba(217, 45, 32, 0.22);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.08);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(217, 45, 32, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .officerRevealRoot,
+  .officerRevealRoot [data-reveal-block='header'],
+  .officerRevealRoot [data-reveal-block='message'],
+  .officerRevealRoot [data-reveal-block='footer'] {
+    animation: officerContainerReveal 160ms ease-out both;
+    animation-delay: 0ms;
+  }
+
+  .officerCursor {
+    display: none;
+  }
+
+  .officerRevealRoot .officerChip[data-chip='high-priority'],
+  .officerRevealRoot .officerChip[data-chip='daily-update'],
+  .officerRevealRoot [data-reveal-block='verified'] {
+    animation: officerChipReveal 160ms ease-out 60ms both;
+    box-shadow: none;
   }
 }

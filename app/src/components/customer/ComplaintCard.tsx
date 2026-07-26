@@ -8,6 +8,7 @@ export interface ComplaintChip {
   readonly tone: ComplaintChipTone
   readonly icon: IconName
   readonly label: string
+  readonly id?: string
 }
 
 export interface ComplaintCardProps {
@@ -38,11 +39,12 @@ export function ComplaintCard({
       </div>
       <p className={styles.message}>{message}</p>
       {chips && chips.length > 0 ? (
-        <div className={styles.chipRow} aria-label="Customer service commitments">
+        <div className={styles.chipRow} aria-label="Case priority classification">
           {chips.map((chip) => (
             <span
               className={`${styles.chip} ${CHIP_CLASS[chip.tone]}`}
               key={chip.label}
+              data-chip={chip.id}
             >
               <Icon name={chip.icon} size={12} aria-hidden="true" />
               {chip.label}

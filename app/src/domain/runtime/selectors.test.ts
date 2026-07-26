@@ -268,7 +268,7 @@ describe('pure runtime selectors', () => {
     })
   })
 
-  it('derives a sequential lifecycle with one Working agent where expected', () => {
+  it('derives a lifecycle that is serial during Intake/Approval and parallel across Investigation', () => {
     const statusesAt = (seconds: number) =>
       Object.fromEntries(
         selectAgentLifecycle(autoAt(seconds)).map((agent) => [
@@ -283,18 +283,36 @@ describe('pure runtime selectors', () => {
       'agent-workflow': 'waiting',
       'agent-finance': 'waiting',
     })
+    // M04 entry — parallel Investigation dispatch: Policy, Workflow, and Finance
+    // all begin working concurrently. Customer Complaint Agent remains completed.
     expect(statusesAt(90)).toEqual({
       'agent-customer-complaint': 'completed',
       'agent-policy': 'working',
-      'agent-workflow': 'waiting',
-      'agent-finance': 'waiting',
+      'agent-workflow': 'working',
+      'agent-finance': 'working',
     })
-    expect(statusesAt(150)).toEqual({
+    // M05 entry (t=120) — Policy completes first; Workflow and Finance continue.
+    expect(statusesAt(120)).toEqual({
       'agent-customer-complaint': 'completed',
       'agent-policy': 'completed',
       'agent-workflow': 'working',
-      'agent-finance': 'waiting',
+      'agent-finance': 'working',
     })
+    // M06 entry (t=150) — Workflow completes; only Finance continues.
+    expect(statusesAt(150)).toEqual({
+      'agent-customer-complaint': 'completed',
+      'agent-policy': 'completed',
+      'agent-workflow': 'completed',
+      'agent-finance': 'working',
+    })
+    // M07 entry (t=180) — Finance completes; investigation synchronized at M08.
+    expect(statusesAt(180)).toEqual({
+      'agent-customer-complaint': 'completed',
+      'agent-policy': 'completed',
+      'agent-workflow': 'completed',
+      'agent-finance': 'completed',
+    })
+    // M12 entry — Finance resumes as the compensation actor during Approval.
     expect(statusesAt(330)).toEqual({
       'agent-customer-complaint': 'completed',
       'agent-policy': 'completed',
@@ -302,12 +320,27 @@ describe('pure runtime selectors', () => {
       'agent-finance': 'working',
     })
 
-    for (const seconds of [9, 30, 90, 150, 240, 330, 390, 420, 455]) {
+    // Expected concurrent-worker counts across the timeline, reflecting the
+    // corrected serial-Intake / parallel-Investigation / serial-Approval shape.
+    const expectedWorkingCount: Record<number, number> = {
+      9: 1, // M01 — Customer Complaint Agent
+      30: 1, // M01 — Customer Complaint Agent
+      90: 3, // M04 — Policy + Workflow + Finance parallel wave
+      120: 2, // M05 — Workflow + Finance still concurrent, Policy completed
+      150: 1, // M06 — Finance still working, Workflow completed
+      180: 0, // M07 — all Investigation specialists completed
+      240: 1, // M09 — Workflow reactivated for conflict handling
+      330: 1, // M12 — Finance compensation
+      390: 1, // M14 — Finance compensation
+      420: 1, // M15 — Workflow contractor assignment
+      455: 1, // M17 — Workflow rerouting
+    }
+    for (const [seconds, expected] of Object.entries(expectedWorkingCount)) {
       expect(
-        selectAgentLifecycle(autoAt(seconds)).filter(
+        selectAgentLifecycle(autoAt(Number(seconds))).filter(
           (agent) => agent.status === 'working',
         ),
-      ).toHaveLength(1)
+      ).toHaveLength(expected)
     }
   })
 

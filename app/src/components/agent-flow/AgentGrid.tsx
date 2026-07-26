@@ -22,6 +22,7 @@ export function AgentGrid({
             className={styles.card}
             data-state={presentationState}
             data-focus={isFocused ? 'primary' : undefined}
+            data-agent-id={agent.id}
             key={agent.id}
             aria-label={`${agent.name}, ${lifecycleLabels[presentationState]}`}
           >

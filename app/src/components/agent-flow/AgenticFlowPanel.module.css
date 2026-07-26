@@ -17,11 +17,9 @@
 
 .connectorRail {
   position: relative;
-  display: grid;
   width: 100%;
   height: 20px;
   margin-bottom: 4px;
-  grid-template-columns: repeat(4, 1fr);
   border-top: 1px dashed #b9c2cf;
 }
 
@@ -37,17 +35,18 @@
 
 .connectorRail span {
   --connector-color: #b9c2cf;
-  position: relative;
-  justify-self: center;
+  position: absolute;
+  top: 0;
   width: 2px;
   height: 18px;
   background: var(--connector-color);
+  transform: translateX(-1px);
 }
 
 .connectorRail span::after {
   position: absolute;
   bottom: -1px;
-  left: -4px;
+  left: -3px;
   border-top: 6px solid var(--connector-color);
   border-right: 4px solid transparent;
   border-left: 4px solid transparent;
@@ -65,6 +64,124 @@
   animation: connectorFlowVertical 0.7s linear infinite;
 }
 
+.connectorRail span[data-dispatching='true'] {
+  --connector-color: var(--color-primary-blue);
+  background: linear-gradient(
+    to bottom,
+    rgba(21, 94, 239, 0.18) 0%,
+    rgba(21, 94, 239, 0.55) 55%,
+    rgba(21, 94, 239, 0.18) 100%
+  );
+  background-size: 100% 200%;
+  animation: connectorDispatchTravel 1.4s ease-in-out infinite;
+}
+
+.connectorRail span[data-wave='investigation'] {
+  --connector-color: var(--color-primary-blue);
+  animation: connectorInvestigationWave 900ms ease-out 1 both;
+}
+
+.connectorRail span[data-wave='investigation'][data-agent-id='agent-workflow'] {
+  animation-delay: 180ms;
+}
+
+.connectorRail span[data-wave='investigation'][data-agent-id='agent-finance'] {
+  animation-delay: 360ms;
+}
+
+.connectorRail span[data-wave='investigation']::before {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--color-primary-blue);
+  content: '';
+  animation: connectorDispatchDot 900ms ease-out 1 both;
+}
+
+.connectorRail span[data-wave='investigation'][data-agent-id='agent-workflow']::before {
+  animation-delay: 180ms;
+}
+
+.connectorRail span[data-wave='investigation'][data-agent-id='agent-finance']::before {
+  animation-delay: 360ms;
+}
+
+@keyframes connectorInvestigationWave {
+  0% {
+    opacity: 0.35;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.connectorRail span[data-dispatching='true']::after {
+  border-top-color: var(--color-primary-blue);
+  opacity: 0.85;
+}
+
+.connectorRail span[data-dispatching='true']::before {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--color-primary-blue);
+  content: '';
+  animation: connectorDispatchDot 1.4s ease-in-out infinite;
+}
+
+@keyframes connectorDispatchTravel {
+  0% {
+    background-position: 0 -100%;
+  }
+  100% {
+    background-position: 0 100%;
+  }
+}
+
+@keyframes connectorDispatchDot {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connectorRail span[data-dispatching='true'] {
+    background: rgba(21, 94, 239, 0.5);
+    animation: none;
+  }
+
+  .connectorRail span[data-dispatching='true']::before {
+    animation: none;
+    opacity: 0.9;
+  }
+
+  .connectorRail span[data-wave='investigation'],
+  .connectorRail span[data-wave='investigation']::before {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .connectorRail span[data-state='completed'] {
   --connector-color: var(--color-success);
 }
@@ -78,33 +195,37 @@
 }
 
 .systemConnectors {
-  display: grid;
+  position: relative;
   width: 100%;
-  height: 22px;
-  margin-top: 6px;
-  grid-template-columns: repeat(4, 1fr);
+  height: 28px;
 }
 
 .systemConnectors span {
-  position: relative;
-  justify-self: center;
-  height: 22px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
   border-left: 1px dashed var(--color-primary-blue);
+  transform: translateX(-0.5px);
 }
 
 .systemConnectors span::before,
 .systemConnectors span::after {
   position: absolute;
+  left: -2px;
   width: 4px;
   height: 4px;
   border-radius: var(--radius-round);
   background: var(--color-primary-blue);
   content: '';
-  transform: translate(-2.5px, 0);
+}
+
+.systemConnectors span::before {
+  top: -2px;
 }
 
 .systemConnectors span::after {
-  transform: translate(-2.5px, 20px);
+  bottom: -2px;
 }
 
 @keyframes connectorFlowVertical {

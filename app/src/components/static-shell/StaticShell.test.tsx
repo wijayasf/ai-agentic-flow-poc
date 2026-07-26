@@ -270,11 +270,23 @@ describe('StaticShell runtime presentation', () => {
     expect(screen.queryByText(/Thank you, Rina/)).not.toBeInTheDocument()
 
     showState(autoAt(9))
+    // Officer acknowledgement mounts at t=9s with header/message/cursor only.
     expect(
       screen.queryByRole('status', { name: 'AI Resolution Officer is typing' }),
     ).not.toBeInTheDocument()
     expect(screen.getByText(/Thank you, Rina/)).toBeInTheDocument()
+    // Intake outcomes (HP / Daily Update Promise / verified) do NOT appear until the
+    // Customer Complaint Agent completes intake at M03 (t=60s).
+    expect(screen.queryByText('High Priority')).not.toBeInTheDocument()
+    expect(screen.queryByText('Daily Update Promise')).not.toBeInTheDocument()
     expect(screen.getAllByText('Rina Putri')).toHaveLength(1)
+
+    showState(autoAt(60))
+    // At t=60s the customer-complaint agent's lifecycle flips to 'completed' → footer with
+    // HP, Daily Update Promise, and Verified badge appears.
+    expect(screen.getByText('High Priority')).toBeInTheDocument()
+    expect(screen.getByText('Daily Update Promise')).toBeInTheDocument()
+    expect(screen.getByLabelText('Verified response')).toBeInTheDocument()
 
     showState(autoAt(90))
     const stageNavigation = screen.getByRole('navigation', {
@@ -368,13 +380,15 @@ describe('StaticShell runtime presentation', () => {
     agents = within(specialistList).getAllByRole('listitem')
     expect(agents[0]).toHaveAttribute('data-state', 'completed')
     expect(within(agents[0]).getByText('Completed')).toBeInTheDocument()
+    // M04 entry — parallel Investigation dispatch: Policy, Workflow, and Finance
+    // all working concurrently. Policy retains primary focus per FOCUS_BY_MOMENT.
     expect(agents[1]).toHaveAttribute('data-state', 'working')
     expect(agents[1]).toHaveAttribute('data-focus', 'primary')
-    expect(agents[2]).toHaveAttribute('data-state', 'waiting')
-    expect(agents[3]).toHaveAttribute('data-state', 'waiting')
+    expect(agents[2]).toHaveAttribute('data-state', 'working')
+    expect(agents[3]).toHaveAttribute('data-state', 'working')
 
     const workingAgents = agents.filter((agent) => agent.dataset.state === 'working')
-    expect(workingAgents).toHaveLength(1)
+    expect(workingAgents).toHaveLength(3)
   })
 
   it('renders Needs Review, Blocked, and terminal lifecycle states', () => {
@@ -489,15 +503,11 @@ describe('StaticShell runtime presentation', () => {
     const agentConnectors = container.querySelectorAll(
       '[data-testid="agent-connector-rail"] > span',
     )
-    const relayConnectors = container.querySelectorAll(
-      '[data-testid="agent-relay-connectors"] > span',
-    )
 
+    // M06 entry (t=150) — Policy + Workflow completed, Finance still working.
     expect(agentConnectors).toHaveLength(4)
     expect(Array.from(agentConnectors).map((connector) => connector.getAttribute('data-state')))
-      .toEqual(['completed', 'completed', 'working', 'waiting'])
-    expect(relayConnectors).toHaveLength(3)
-    expect(relayConnectors[1]).toHaveAttribute('data-state', 'working')
+      .toEqual(['completed', 'completed', 'completed', 'working'])
   })
 
   it('shows a draft preview only after Finance prepares the recommendation', () => {

@@ -35,6 +35,41 @@
   border-color: #9ec5f8;
 }
 
+.card[data-state='engaged'][data-system-id='system-policy-repository'],
+.card[data-state='engaged'][data-system-id='system-sap-cx'],
+.card[data-state='engaged'][data-system-id='system-sap-s4hana'] {
+  animation: systemEngagementHighlight 700ms ease-out 1 both;
+}
+
+.card[data-state='engaged'][data-system-id='system-sap-cx'] {
+  animation-delay: 240ms;
+}
+
+.card[data-state='engaged'][data-system-id='system-sap-s4hana'] {
+  animation-delay: 420ms;
+}
+
+@keyframes systemEngagementHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(21, 94, 239, 0);
+  }
+  55% {
+    box-shadow: 0 0 0 4px rgba(21, 94, 239, 0.18);
+  }
+  100% {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-state='engaged'][data-system-id='system-policy-repository'],
+  .card[data-state='engaged'][data-system-id='system-sap-cx'],
+  .card[data-state='engaged'][data-system-id='system-sap-s4hana'] {
+    animation: none;
+    animation-delay: 0ms;
+  }
+}
+
 .card[data-state='failed'] {
   border-color: var(--color-danger);
 }

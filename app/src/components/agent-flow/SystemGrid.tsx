@@ -21,6 +21,7 @@ export function SystemGrid({
           <li
             className={styles.card}
             data-state={presentationState}
+            data-system-id={system.id}
             key={system.id}
             aria-label={`${system.name}, ${presentationState}`}
           >
