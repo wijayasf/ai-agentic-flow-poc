@@ -32,7 +32,7 @@
     {
       "id": "scene-failure-recovery",
       "stage": 3,
-      "failureCode": "FINANCE_POST_TIMEOUT",
+      "failureCode": "CONTRACTOR_REJECTED",
       "presenterPause": false
     },
     {

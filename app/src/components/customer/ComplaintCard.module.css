@@ -1,0 +1,114 @@
+.complaint {
+  padding: 14px 16px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface-muted);
+  box-shadow: var(--shadow-card);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.label {
+  color: var(--color-primary-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.timestamp {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: var(--radius-round);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chip svg {
+  flex: 0 0 auto;
+}
+
+.chipDanger {
+  border-color: #f4a5a5;
+  background: var(--color-danger-tint);
+  color: #b42318;
+}
+
+.chipWarning {
+  border-color: #f3bd5d;
+  background: var(--color-warning-tint);
+  color: #9a4d00;
+}
+
+.chip[data-chip='high-priority'] {
+  opacity: 0;
+  animation: highPriorityReveal 320ms ease-out 60ms both,
+    highPriorityPulse 720ms ease-out 380ms 1 both;
+}
+
+@keyframes highPriorityReveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes highPriorityPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(217, 45, 32, 0);
+  }
+  35% {
+    transform: scale(1.09);
+    box-shadow: 0 0 0 6px rgba(217, 45, 32, 0.22);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(217, 45, 32, 0.08);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(217, 45, 32, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip[data-chip='high-priority'] {
+    animation: highPriorityReveal 160ms ease-out 0ms both;
+    box-shadow: none;
+  }
+}

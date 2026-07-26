@@ -42,12 +42,16 @@ const COMPLETION_ACTIONS = [
   'pause',
   'wait_for_approval',
   'wait_for_failure_injection',
-  'approve_and_advance',
   'inject_failure_and_advance',
   'complete',
 ] as const
 const CONFLICT_STATUSES = ['neutral', 'active', 'resolved'] as const
-const APPROVAL_STATUSES = ['not_required', 'pending', 'approved'] as const
+const APPROVAL_STATUSES = [
+  'not_required',
+  'pending',
+  'approved',
+  'rejected',
+] as const
 const FAILURE_STATUSES = ['not_injected', 'active', 'recovered'] as const
 const RECOVERY_STATUSES = ['not_started', 'recovering', 'completed'] as const
 const STATE_KEYS = [
@@ -303,9 +307,15 @@ function validateExpectedState(value: unknown, path: string): RuntimeMomentExpec
 function validateApprovalGate(value: unknown, path: string): RuntimeMoment['approvalGate'] {
   if (value === null) return null
   const record = readRecord(value, path)
-  assertExactKeys(record, ['action', 'continuationMomentId', 'copy'], path)
+  assertExactKeys(record, ['actions', 'continuationMomentId', 'copy'], path)
+  const actions = readIdArray(
+    record.actions,
+    ['approve', 'reject'] as const,
+    `${path}.actions`,
+  )
+  assertArrayEqual(actions, ['approve', 'reject'], `${path}.actions`)
   return {
-    action: readLiteral(record.action, ['approve'] as const, `${path}.action`),
+    actions: ['approve', 'reject'],
     continuationMomentId: readLiteral(
       record.continuationMomentId,
       MOMENT_IDS,
@@ -328,7 +338,7 @@ function validateFailureGate(value: unknown, path: string): RuntimeMoment['failu
     ),
     failureCode: readLiteral(
       record.failureCode,
-      ['FINANCE_POST_TIMEOUT'] as const,
+      ['CONTRACTOR_REJECTED'] as const,
       `${path}.failureCode`,
     ),
   }
@@ -534,7 +544,7 @@ function validateScenario(value: unknown): RuntimeFixtureBundle['scenario'] {
           ...scene,
           failureCode: readLiteral(
             record.failureCode,
-            ['FINANCE_POST_TIMEOUT'] as const,
+            ['CONTRACTOR_REJECTED'] as const,
             `scenario.scenes[${index}].failureCode`,
           ),
         }
@@ -760,7 +770,7 @@ function validateTimeline(
       ),
       failureCode: readLiteral(
         failureRecovery.failureCode,
-        ['FINANCE_POST_TIMEOUT'] as const,
+        ['CONTRACTOR_REJECTED'] as const,
         'timeline.failureRecovery.failureCode',
       ),
       failureCopy: readString(failureRecovery.failureCopy, 'timeline.failureRecovery.failureCopy'),

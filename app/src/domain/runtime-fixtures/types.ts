@@ -133,11 +133,10 @@ export type RuntimeCompletionAction =
   | 'pause'
   | 'wait_for_approval'
   | 'wait_for_failure_injection'
-  | 'approve_and_advance'
   | 'inject_failure_and_advance'
   | 'complete'
 export type ConflictStatus = 'neutral' | 'active' | 'resolved'
-export type ApprovalStatus = 'not_required' | 'pending' | 'approved'
+export type ApprovalStatus = 'not_required' | 'pending' | 'approved' | 'rejected'
 export type FailureStatus = 'not_injected' | 'active' | 'recovered'
 export type RecoveryStatus = 'not_started' | 'recovering' | 'completed'
 
@@ -199,14 +198,14 @@ export interface RuntimeMoment {
   readonly visibleEventIds: readonly EventId[]
   readonly availableArtifactIds: readonly ArtifactId[]
   readonly approvalGate: null | {
-    readonly action: 'approve'
+    readonly actions: readonly ['approve', 'reject']
     readonly continuationMomentId: MomentId
     readonly copy: string
   }
   readonly failureGate: null | {
     readonly action: 'inject_failure'
     readonly continuationMomentId: MomentId
-    readonly failureCode: 'FINANCE_POST_TIMEOUT'
+    readonly failureCode: 'CONTRACTOR_REJECTED'
   }
   readonly completion: {
     readonly presenter: RuntimeCompletionAction
@@ -255,7 +254,7 @@ export interface RuntimeTimelineFixture {
     readonly failureMomentId: MomentId
     readonly recoveringMomentId: MomentId
     readonly recoveredMomentId: MomentId
-    readonly failureCode: 'FINANCE_POST_TIMEOUT'
+    readonly failureCode: 'CONTRACTOR_REJECTED'
     readonly failureCopy: string
     readonly recoveryCopy: string
   }
@@ -292,7 +291,7 @@ export interface RuntimeFixtureBundle {
       readonly id: SceneId
       readonly stage: number
       readonly presenterPause: boolean
-      readonly failureCode?: 'FINANCE_POST_TIMEOUT'
+      readonly failureCode?: 'CONTRACTOR_REJECTED'
     }>
   }
   readonly timeline: RuntimeTimelineFixture

@@ -1,0 +1,341 @@
+.toggle {
+  display: inline-flex;
+  height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid #84adff;
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: var(--shadow-card);
+  color: var(--color-primary-blue);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.toggle strong {
+  min-width: 30px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.toggle[aria-pressed='true'] {
+  border-color: var(--color-primary-blue);
+  background: var(--color-primary-blue);
+  color: white;
+}
+
+.toggle[aria-pressed='true'] strong {
+  background: white;
+  color: var(--color-primary-blue);
+}
+
+.toggle[data-variant='mobile'] {
+  position: fixed;
+  z-index: 80;
+  right: 14px;
+  bottom: 14px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 11px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.toggle[data-variant='mobile'][data-mobile-view='story'] {
+  bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
+.surface {
+  position: fixed;
+  z-index: 90;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: 0 24px 60px rgba(16, 24, 40, 0.24);
+  color: var(--color-text-body);
+  animation: presenterPanelIn 180ms ease-out both;
+}
+
+.surface[data-variant='panel'] {
+  top: 72px;
+  bottom: 88px;
+  left: 16px;
+  width: min(390px, calc(100vw - 32px));
+  border-radius: 16px;
+}
+
+.surface[data-variant='sheet'] {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: min(72dvh, 680px);
+  border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation-name: presenterSheetIn;
+}
+
+.header {
+  display: flex;
+  min-height: 68px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border);
+  background: #f8faff;
+}
+
+.header > div,
+.header > div > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header > div > div {
+  display: grid;
+  gap: 1px;
+}
+
+.header > div > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--color-primary-tint);
+  color: var(--color-primary-blue);
+}
+
+.header small {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 19px;
+}
+
+.header button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: white;
+  color: var(--color-text-strong);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.scrollArea {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.content {
+  display: grid;
+  gap: 18px;
+  padding: 16px;
+}
+
+.content section > h3,
+.guidanceGrid h3,
+.whyItMatters h3 {
+  margin: 0 0 7px;
+  color: var(--color-text-strong);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.content p,
+.content ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.content ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.stageSummary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #cfe0ff;
+  border-radius: 11px;
+  background: var(--color-primary-tint);
+}
+
+.stageSummary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.stageSummary > div > span {
+  color: var(--color-primary-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.stageSummary h3 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 18px;
+}
+
+.remainingTime {
+  display: inline-flex;
+  max-width: 145px;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: white;
+  color: var(--color-primary-blue);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.keyMessage {
+  padding-left: 12px;
+  border-left: 3px solid var(--color-primary-blue);
+  color: var(--color-text-strong);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.guidanceGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.guidanceGrid section,
+.whyItMatters {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-raised);
+}
+
+.guidanceGrid section > span,
+.whyItMatters > span {
+  color: var(--color-primary-blue);
+}
+
+.guidanceGrid h3,
+.whyItMatters h3 {
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+.guidanceGrid p,
+.whyItMatters p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.whyItMatters {
+  border-color: #abefc6;
+  background: #f6fef9;
+}
+
+.whyItMatters > span {
+  color: #067647;
+}
+
+.qa {
+  padding-top: 2px;
+}
+
+.qa > p {
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+}
+
+.qa details {
+  border-top: 1px solid var(--color-border);
+}
+
+.qa details:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.qa summary {
+  min-height: 44px;
+  padding: 12px 4px;
+  color: var(--color-text-strong);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.qa details p {
+  padding: 0 4px 13px 18px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.toggle:focus-visible,
+.header button:focus-visible,
+.qa summary:focus-visible {
+  outline: 3px solid #84adff;
+  outline-offset: 2px;
+}
+
+@keyframes presenterPanelIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes presenterSheetIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface {
+    animation: none;
+  }
+
+  .toggle {
+    backdrop-filter: none;
+  }
+}

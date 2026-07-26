@@ -50,18 +50,18 @@ const referenceOnlyEvents: ReferenceCompositionEvent[] = [
   {
     id: 'evt-11',
     time: '09:20:10',
-    agent: 'Finance Agent',
-    action: 'Finance posting failed',
-    skill: 'Finance posting',
-    output: 'FINANCE_POST_TIMEOUT',
+    agent: 'Workflow Agent',
+    action: 'Contractor rejected task',
+    skill: 'Task assignment',
+    output: 'CONTRACTOR_REJECTED',
   },
   {
     id: 'evt-12',
     time: '09:20:30',
-    agent: 'Finance Agent',
-    action: 'Fallback retry succeeded',
-    skill: 'Finance posting',
-    output: 'Finance posting completed',
+    agent: 'Workflow Agent',
+    action: 'Task rerouted to alternative contractor',
+    skill: 'Task assignment',
+    output: 'TASK_REROUTED',
   },
 ]
 

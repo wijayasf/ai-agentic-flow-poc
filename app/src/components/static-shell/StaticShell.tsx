@@ -1,445 +1,90 @@
-import complaint from '@fixtures/complaints/complaint-leakage-001.json'
-import customer from '@fixtures/customers/customer-rina-putri.json'
+import type { ReactNode } from 'react'
+import { Icon } from '../icon/Icon'
+import type { IconName } from '../icon/Icon'
+import { IconBadge } from '../primitives/IconBadge'
+import { PanelHeading } from '../primitives/PanelHeading'
+import { CustomerPanel } from '../customer/CustomerPanel'
+import { agents } from '../agent-flow/config'
+import type { AgentTone } from '../agent-flow/config'
+import { AgenticFlowPanel } from '../agent-flow/AgenticFlowPanel'
+import { artifactTrailingGlyph } from '../trust/artifactTrailingGlyph'
+import { shouldShowContextCard } from '../trust/shouldShowContextCard'
+import type { SceneId } from '../../domain/runtime-fixtures/types'
 import type {
-  AgentId,
-  SystemId,
-} from '../../domain/runtime-fixtures/types'
-import type {
-  ArtifactPresentation,
   RuntimeState,
   RuntimeViewModel,
 } from '../../domain/runtime'
 import type { RuntimeControllerActions } from '../../runtime'
 import styles from './StaticShell.module.css'
 
-type Tone = 'blue' | 'green' | 'violet' | 'orange' | 'red' | 'amber'
-
-interface StaticShellProps {
+export interface StaticShellProps {
   readonly state: RuntimeState
   readonly viewModel: RuntimeViewModel
   readonly actions: RuntimeControllerActions
+  readonly canvasScale?: number
+  readonly embedded?: boolean
+  readonly headerActions?: ReactNode
 }
 
-const agents: ReadonlyArray<{
-  id: AgentId
-  name: string
-  glyph: string
-  skill: string
-  tone: Tone
-}> = [
-  {
-    id: 'agent-customer-complaint',
-    name: 'Customer Complaint Agent',
-    glyph: 'C',
-    skill: 'Image understanding',
-    tone: 'green',
-  },
-  {
-    id: 'agent-policy',
-    name: 'Policy Agent',
-    glyph: 'P',
-    skill: 'Policy retrieval',
-    tone: 'violet',
-  },
-  {
-    id: 'agent-workflow',
-    name: 'Workflow Agent',
-    glyph: 'W',
-    skill: 'SAP CX investigation',
-    tone: 'blue',
-  },
-  {
-    id: 'agent-finance',
-    name: 'Finance Agent',
-    glyph: 'F',
-    skill: 'Financial calculation',
-    tone: 'orange',
-  },
+export const DESIGN_SURFACE_WIDTH = 1920
+export const DESIGN_SURFACE_HEIGHT = 1080
+
+const artifactTones: readonly AgentTone[] = ['blue', 'red', 'green', 'violet']
+const artifactIcons: readonly IconName[] = [
+  'artifact',
+  'alert',
+  'approval',
+  'shield',
 ]
 
-const systems: ReadonlyArray<{
-  id: SystemId
-  name: string
-  glyph: string
-  tone: Tone
-}> = [
-  { id: 'system-crm', name: 'CRM', glyph: 'CRM', tone: 'green' },
-  {
-    id: 'system-policy-repository',
-    name: 'Policy Repository',
-    glyph: 'PR',
-    tone: 'violet',
-  },
-  { id: 'system-sap-cx', name: 'SAP CX', glyph: 'CX', tone: 'blue' },
-  {
-    id: 'system-sap-s4hana',
-    name: 'SAP S/4HANA',
-    glyph: 'S4',
-    tone: 'orange',
-  },
-]
-
-const artifactTones: readonly Tone[] = ['blue', 'red', 'green', 'violet']
-
-function Glyph({ glyph, tone }: { glyph: string; tone: Tone }) {
-  return (
-    <span className={styles.glyph} data-tone={tone} aria-hidden="true">
-      {glyph}
-    </span>
-  )
+const SCENE_META: Record<SceneId, { index: number; label: string }> = {
+  'scene-intake': { index: 1, label: 'Intake' },
+  'scene-investigation': { index: 2, label: 'Investigation' },
+  'scene-conflict': { index: 3, label: 'Conflict' },
+  'scene-approval': { index: 4, label: 'Approval' },
+  'scene-failure-recovery': { index: 5, label: 'Recovery' },
+  'scene-resolution': { index: 6, label: 'Resolution' },
 }
 
-function PanelHeading({
-  id,
-  glyph,
-  children,
+const DEMO_TAGLINE = 'AI-Powered Complaint Resolution Demo'
+
+function DemoHeader({
+  viewModel,
+  headerActions,
 }: {
-  id: string
-  glyph: string
-  children: string
+  viewModel: RuntimeViewModel
+  headerActions?: ReactNode
 }) {
-  return (
-    <h2 className={styles.panelHeading} id={id}>
-      <span className={styles.panelGlyph} aria-hidden="true">
-        {glyph}
-      </span>
-      {children}
-    </h2>
-  )
-}
-
-function DemoHeader({ viewModel }: { viewModel: RuntimeViewModel }) {
-  const { timer } = viewModel
+  const { timer, currentSceneId } = viewModel
+  const sceneMeta = currentSceneId ? SCENE_META[currentSceneId] : null
+  const subtitleText = sceneMeta
+    ? `Scene ${sceneMeta.index} · ${sceneMeta.label}`
+    : DEMO_TAGLINE
   return (
     <header className={styles.header}>
       <div className={styles.brandGroup}>
         <span className={styles.brandMark} aria-hidden="true">
-          {Array.from({ length: 9 }, (_, index) => (
-            <span key={index} />
-          ))}
+          <Icon name="flow" size={31} strokeWidth={1.7} />
         </span>
-        <h1>AI Agentic Flow</h1>
-        <span className={styles.headerDivider} aria-hidden="true" />
-        <p>AI-Powered Complaint Resolution Demo</p>
+        <div className={styles.brandTitleStack}>
+          <h1>AI Agentic Flow</h1>
+          <p className={styles.brandSubtitle}>{subtitleText}</p>
+        </div>
       </div>
-      <div
-        className={styles.timerVisual}
-        aria-label={`Demo time ${timer.elapsedText} of ${timer.totalText}`}
-      >
-        <span className={styles.timerClock} aria-hidden="true" />
-        <span>Demo Time</span>
-        <time dateTime={`PT${timer.elapsedSeconds}S`}>{timer.elapsedText}</time>
-        <span aria-hidden="true">/</span>
-        <span>{timer.totalText}</span>
+      <div className={styles.headerActions}>
+        {headerActions}
+        <div
+          className={styles.timerVisual}
+          aria-label={`Demo time ${timer.elapsedText} of ${timer.totalText}`}
+        >
+          <Icon name="clock" size={19} aria-hidden="true" />
+          <span>Demo Time</span>
+          <time dateTime={`PT${timer.elapsedSeconds}S`}>{timer.elapsedText}</time>
+          <span aria-hidden="true">/</span>
+          <span>{timer.totalText}</span>
+        </div>
       </div>
     </header>
-  )
-}
-
-function AttachmentPlaceholder({ type }: { type: 'image' | 'document' }) {
-  return (
-    <span className={styles.attachmentVisual} data-type={type} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </span>
-  )
-}
-
-function CustomerExperiencePanel() {
-  return (
-    <section
-      className={`${styles.panel} ${styles.customerPanel}`}
-      aria-labelledby="customer-experience-heading"
-    >
-      <PanelHeading id="customer-experience-heading" glyph="C">
-        Customer Experience
-      </PanelHeading>
-
-      <article className={styles.customerCard} aria-label="Customer complaint">
-        <div className={styles.customerIdentity}>
-          <span className={styles.avatarPlaceholder} aria-hidden="true">
-            RP
-          </span>
-          <strong>{customer.name}</strong>
-          <time dateTime={complaint.createdAt}>09:15 AM</time>
-        </div>
-        <p className={styles.customerMessage}>{complaint.message}</p>
-        <fieldset className={styles.attachments}>
-          <legend>Attachments ({complaint.attachments.length})</legend>
-          <div className={styles.attachmentGrid}>
-            {complaint.attachments.map((attachment) => (
-              <article className={styles.attachmentCard} key={attachment.id}>
-                <AttachmentPlaceholder
-                  type={attachment.type as 'image' | 'document'}
-                />
-                <strong>{attachment.name}</strong>
-                <span>.{attachment.extension}</span>
-              </article>
-            ))}
-          </div>
-        </fieldset>
-      </article>
-
-      <article className={styles.officerCard} aria-labelledby="officer-heading">
-        <div className={styles.officerHeader}>
-          <Glyph glyph="AI" tone="blue" />
-          <strong id="officer-heading">AI Resolution Officer</strong>
-          <time dateTime="09:16:00">09:16 AM</time>
-        </div>
-        <p>
-          Thank you, Rina. I’ve received your complaint and attachments. I’m
-          reviewing with the right systems and experts. I’ll keep you updated
-          daily until this is resolved.
-        </p>
-        <span className={styles.verifiedMark} aria-label="Verified response">
-          ✓
-        </span>
-      </article>
-
-      <div className={styles.statusChips} aria-label="Customer service commitments">
-        <span className={styles.dangerChip}>
-          <span aria-hidden="true">!</span> High Priority
-        </span>
-        <span className={styles.warningChip}>
-          <span aria-hidden="true">D</span> Daily Update Promise
-        </span>
-      </div>
-    </section>
-  )
-}
-
-function StageStepper({ viewModel }: { viewModel: RuntimeViewModel }) {
-  return (
-    <nav className={styles.stageStepper} aria-label="Complaint resolution stages">
-      <ol>
-        {viewModel.stages.map(({ stage, state }, index) => (
-          <li
-            className={
-              state === 'current'
-                ? styles.activeStage
-                : state === 'completed'
-                  ? styles.completedStage
-                  : undefined
-            }
-            data-state={state}
-            key={stage}
-            aria-current={state === 'current' ? 'step' : undefined}
-          >
-            <span>{state === 'completed' ? '✓' : index + 1}</span>
-            <strong>{stage}</strong>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  )
-}
-
-function agentPresentationState(
-  state: RuntimeState,
-  agentId: AgentId,
-): 'inactive' | 'active' | 'failed' | 'recovering' | 'recovered' {
-  if (!state.activeAgentIds.includes(agentId)) return 'inactive'
-  if (agentId !== 'agent-finance') return 'active'
-  if (state.playbackStatus === 'failed') return 'failed'
-  if (state.playbackStatus === 'recovering') return 'recovering'
-  if (state.failureStatus === 'recovered') return 'recovered'
-  return 'active'
-}
-
-function AgentGrid({ state }: { state: RuntimeState }) {
-  return (
-    <ul className={styles.agentGrid} aria-label="Specialist agents">
-      {agents.map((agent) => {
-        const presentationState = agentPresentationState(state, agent.id)
-        return (
-          <li
-            className={styles.agentCard}
-            data-state={presentationState}
-            key={agent.id}
-            aria-label={`${agent.name}, ${presentationState}`}
-          >
-            <Glyph glyph={agent.glyph} tone={agent.tone} />
-            <strong>{agent.name}</strong>
-            <span>Active Skill</span>
-            <small data-tone={agent.tone}>
-              {agent.skill} <i aria-hidden="true" />
-            </small>
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
-function systemPresentationState(
-  state: RuntimeState,
-  systemId: SystemId,
-): 'inactive' | 'engaged' | 'failed' | 'recovering' | 'resolved' {
-  if (!state.activeSystemIds.includes(systemId)) return 'inactive'
-  if (systemId !== 'system-sap-s4hana') return 'engaged'
-  if (state.playbackStatus === 'failed') return 'failed'
-  if (state.playbackStatus === 'recovering') return 'recovering'
-  if (state.failureStatus === 'recovered') return 'resolved'
-  return 'engaged'
-}
-
-function SystemGrid({ state }: { state: RuntimeState }) {
-  return (
-    <ul className={styles.systemGrid} aria-label="Enterprise systems">
-      {systems.map((system) => {
-        const presentationState = systemPresentationState(state, system.id)
-        return (
-          <li
-            className={styles.systemCard}
-            data-state={presentationState}
-            key={system.id}
-            aria-label={`${system.name}, ${presentationState}`}
-          >
-            <span
-              className={styles.systemPlaceholder}
-              data-tone={system.tone}
-              aria-hidden="true"
-            >
-              {system.glyph}
-            </span>
-            <strong>{system.name}</strong>
-          </li>
-        )
-      })}
-    </ul>
-  )
-}
-
-function ConflictStatus({ state }: { state: RuntimeState }) {
-  const isNeutral = state.conflictStatus === 'neutral'
-  const isResolved = state.conflictStatus === 'resolved'
-  return (
-    <div
-      className={styles.conflictBanner}
-      data-state={state.conflictStatus}
-      role="status"
-    >
-      <span aria-hidden="true">{isNeutral ? '–' : isResolved ? '✓' : '!'}</span>
-      <p>
-        {isNeutral ? (
-          <>Conflict status will appear as evidence is reconciled.</>
-        ) : isResolved ? (
-          <>
-            <strong>Conflict resolved:</strong> Customer evidence and SAP CX
-            resolution status are reconciled.
-          </>
-        ) : (
-          <>
-            <strong>Conflict detected:</strong> SAP CX shows Completed, but
-            customer evidence shows unresolved leakage.
-          </>
-        )}
-      </p>
-    </div>
-  )
-}
-
-function ActivityTraceTable({ viewModel }: { viewModel: RuntimeViewModel }) {
-  return (
-    <div
-      className={styles.traceViewport}
-      tabIndex={0}
-      role="region"
-      aria-label="Activity trace"
-    >
-      <table>
-        <caption className={styles.visuallyHidden}>
-          Visible deterministic activity trace events
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Agent</th>
-            <th scope="col">Action</th>
-            <th scope="col">Skill</th>
-            <th scope="col">Output</th>
-          </tr>
-        </thead>
-        <tbody>
-          {viewModel.visibleEvents.map((event) => {
-            const eventTone =
-              agents.find((agent) => agent.name === event.agent)?.tone ?? 'blue'
-            return (
-              <tr key={event.id} data-event-id={event.id}>
-                <td aria-label={event.time} title={event.time}>
-                  {event.time}
-                </td>
-                <td aria-label={event.agent} title={event.agent}>
-                  <span
-                    className={styles.traceDot}
-                    data-tone={eventTone}
-                    aria-hidden="true"
-                  />
-                  {event.agent}
-                </td>
-                <td aria-label={event.action} title={event.action}>
-                  {event.action}
-                </td>
-                <td
-                  aria-label={event.skill}
-                  data-tone={eventTone}
-                  title={event.skill}
-                >
-                  {event.skill}
-                </td>
-                <td aria-label={event.output} title={event.output}>
-                  {event.output}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function AgenticFlowPanel({
-  state,
-  viewModel,
-}: {
-  state: RuntimeState
-  viewModel: RuntimeViewModel
-}) {
-  return (
-    <section
-      className={`${styles.panel} ${styles.flowPanel}`}
-      aria-labelledby="agentic-flow-heading"
-    >
-      <PanelHeading id="agentic-flow-heading" glyph="F">
-        Agentic Flow
-      </PanelHeading>
-      <StageStepper viewModel={viewModel} />
-      <article className={styles.commanderCard} aria-label="Case Commander">
-        <Glyph glyph="CC" tone="blue" />
-        <div>
-          <strong>Case Commander</strong>
-          <span>Orchestrating agents and resolving conflicts</span>
-        </div>
-      </article>
-      <div className={styles.connectorRail} aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <AgentGrid state={state} />
-      <div className={styles.systemConnectors} aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <SystemGrid state={state} />
-      <ConflictStatus state={state} />
-      <ActivityTraceTable viewModel={viewModel} />
-    </section>
   )
 }
 
@@ -453,15 +98,15 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
       value: String(currentStageIndex + 1),
       suffix: '/ 5',
       status: viewModel.currentStage ?? 'Idle',
-      glyph: 'S',
+      icon: 'flag' as const,
       tone: 'blue' as const,
     },
     {
-      label: 'Active Agents',
+      label: 'Working Agents',
       value: String(viewModel.activeAgentCount),
       suffix: 'of 4',
-      status: viewModel.activeAgentCount === 4 ? 'All Active' : 'Active',
-      glyph: 'A',
+      status: viewModel.activeAgentCount === 0 ? 'Relay Ready' : 'In Progress',
+      icon: 'users' as const,
       tone: 'green' as const,
     },
     {
@@ -469,7 +114,7 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
       value: String(viewModel.toolActivity),
       suffix: '',
       status: 'Events',
-      glyph: 'T',
+      icon: 'activity' as const,
       tone: 'violet' as const,
     },
     {
@@ -477,7 +122,7 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
       value: String(viewModel.artifactsProduced),
       suffix: '',
       status: 'Artifacts',
-      glyph: 'D',
+      icon: 'artifact' as const,
       tone: 'orange' as const,
     },
   ]
@@ -486,7 +131,7 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
     <ul className={styles.metricGrid} aria-label="Trust and observability metrics">
       {metrics.map((metric) => (
         <li className={styles.metricCard} key={metric.label}>
-          <Glyph glyph={metric.glyph} tone={metric.tone} />
+          <IconBadge icon={metric.icon} tone={metric.tone} />
           <div>
             <span>{metric.label}</span>
             <strong>
@@ -500,41 +145,205 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
   )
 }
 
-function artifactTrailingGlyph(status: ArtifactPresentation['status']) {
-  switch (status) {
-    case 'locked':
-      return '⌑'
-    case 'pending':
-      return '◷'
-    case 'approved':
-      return '✓'
-    case 'available':
-      return '›'
-    default:
-      return status satisfies never
-  }
-}
-
 function ArtifactList({ viewModel }: { viewModel: RuntimeViewModel }) {
+  const availableArtifacts = viewModel.artifacts.filter(
+    (artifact) => artifact.status !== 'locked',
+  )
   return (
     <section className={styles.artifactSection} aria-labelledby="artifacts-heading">
       <h3 id="artifacts-heading">Key Artifacts</h3>
-      <ol>
-        {viewModel.artifacts.map((artifact, index) => (
-          <li
-            key={artifact.id}
-            data-state={artifact.status}
-            aria-label={`${artifact.order}. ${artifact.name}, ${artifact.status}`}
-          >
-            <Glyph glyph={String(index + 1)} tone={artifactTones[index]} />
-            <span>
-              {artifact.order}. {artifact.name}
-            </span>
-            <span aria-hidden="true">{artifactTrailingGlyph(artifact.status)}</span>
-          </li>
-        ))}
-      </ol>
+      {availableArtifacts.length === 0 ? (
+        <p className={styles.artifactEmpty}>Artifacts appear as agents create them.</p>
+      ) : (
+        <ol>
+          {availableArtifacts.map((artifact) => {
+            const index = viewModel.artifacts.findIndex(
+              (candidate) => candidate.id === artifact.id,
+            )
+            return (
+              <li
+                key={artifact.id}
+                data-state={artifact.status}
+                aria-label={`${artifact.order}. ${artifact.name}, ${artifact.status}`}
+              >
+                <IconBadge icon={artifactIcons[index]} tone={artifactTones[index]} />
+                <span>
+                  {artifact.order}. {artifact.name}
+                </span>
+                <span aria-hidden="true">{artifactTrailingGlyph(artifact.status)}</span>
+              </li>
+            )
+          })}
+        </ol>
+      )}
     </section>
+  )
+}
+
+function DecisionRationale({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
+  const rationale = viewModel.decisionRationale
+  if (rationale === null) return null
+  const agentName = agents.find((agent) => agent.id === rationale.agentId)?.name
+  return (
+    <article
+      className={styles.rationaleCard}
+      data-state={rationale.state}
+      aria-labelledby="decision-rationale-heading"
+    >
+      <span className={styles.rationaleIcon} aria-hidden="true">
+        <Icon
+          name={
+            rationale.state === 'blocked'
+              ? 'alert'
+              : rationale.state === 'working'
+                ? 'activity'
+                : 'check'
+          }
+          size={18}
+        />
+      </span>
+      <div>
+        <small>
+          {agentName} ·{' '}
+          {rationale.state === 'working'
+            ? 'Working summary'
+            : rationale.state === 'blocked'
+              ? 'Blocked'
+              : 'Result'}
+        </small>
+        <h3 id="decision-rationale-heading">{rationale.title}</h3>
+        <ul>
+          {rationale.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+        </ul>
+      </div>
+    </article>
+  )
+}
+
+function OutcomePreview({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
+  const preview = viewModel.outcomePreview
+  if (preview === null) return null
+  return (
+    <article
+      className={styles.outcomePreview}
+      aria-labelledby="outcome-preview-heading"
+    >
+      <span aria-hidden="true"><Icon name="flag" size={18} /></span>
+      <div>
+        <small>Draft recommendation · Not final</small>
+        <h3 id="outcome-preview-heading">{preview.label}</h3>
+        <ul>
+          {preview.items.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </div>
+    </article>
+  )
+}
+
+function ApprovalDecisionCard({
+  viewModel,
+  actions,
+}: Pick<StaticShellProps, 'viewModel' | 'actions'>) {
+  const approval = viewModel.approvalGate
+  if (approval === null) return null
+  return (
+    <article
+      className={styles.approvalDecisionCard}
+      aria-labelledby="approval-decision-heading"
+    >
+      <header>
+        <span aria-hidden="true"><Icon name="approval" size={20} /></span>
+        <div>
+          <small>Explicit human decision</small>
+          <h3 id="approval-decision-heading">Approval required</h3>
+        </div>
+      </header>
+      <section aria-labelledby="recommended-action-heading">
+        <h4 id="recommended-action-heading">Recommended Action</h4>
+        <strong>{approval.recommendedAction}</strong>
+      </section>
+      <section aria-labelledby="approval-why-heading">
+        <h4 id="approval-why-heading">Why</h4>
+        <ul>
+          {approval.why.map((reason) => <li key={reason}>{reason}</li>)}
+        </ul>
+      </section>
+      <div className={styles.approvalImpactGrid}>
+        <section aria-labelledby="impact-heading">
+          <h4 id="impact-heading">Estimated Impact</h4>
+          <strong>{approval.estimatedImpact}</strong>
+          <small>{approval.impactQualifier}</small>
+        </section>
+        <section aria-labelledby="rejection-risk-heading">
+          <h4 id="rejection-risk-heading">Risk if rejected</h4>
+          <strong>{approval.riskIfRejected}</strong>
+        </section>
+      </div>
+      <section className={styles.gatePreview} aria-labelledby="gate-preview-heading">
+        <small>Draft recommendation · Not final</small>
+        <h4 id="gate-preview-heading">{approval.outcomePreview.label}</h4>
+        <ul>
+          {approval.outcomePreview.items.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </section>
+      <div className={styles.approvalActions}>
+        <button
+          className={styles.rejectButton}
+          type="button"
+          onClick={actions.reject}
+          disabled={!viewModel.controls.canReject}
+        >
+          <Icon name="alert" size={16} aria-hidden="true" />
+          Reject
+        </button>
+        <button
+          className={styles.approveDecisionButton}
+          type="button"
+          onClick={actions.approve}
+          disabled={!viewModel.controls.canApprove}
+          autoFocus
+        >
+          <Icon name="check" size={16} aria-hidden="true" />
+          Approve
+        </button>
+      </div>
+    </article>
+  )
+}
+
+function FinalOutcome({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
+  const outcome = viewModel.finalOutcome
+  if (outcome === null) return null
+  return (
+    <article
+      className={styles.finalOutcomeCard}
+      data-outcome={outcome.type}
+      role={outcome.type === 'escalated' ? 'alert' : 'status'}
+      aria-labelledby="final-outcome-heading"
+    >
+      <header>
+        <span aria-hidden="true">
+          <Icon name={outcome.type === 'approved' ? 'check' : 'alert'} size={21} />
+        </span>
+        <div>
+          <small>{outcome.type === 'approved' ? 'Approved resolution' : 'Escalated outcome'}</small>
+          <h3 id="final-outcome-heading">{outcome.heading}</h3>
+        </div>
+      </header>
+      <ul className={styles.outcomeSummary} aria-label="Outcome summary">
+        {outcome.summary.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+      <div className={styles.outcomeSections}>
+        {outcome.sections.map((section) => (
+          <section key={section.heading}>
+            <h4>{section.heading}</h4>
+            <ul>
+              {section.items.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </article>
   )
 }
 
@@ -544,57 +353,63 @@ function ContextStatusCard({
   actions,
 }: StaticShellProps) {
   const { context } = viewModel
-  let tone: 'neutral' | 'warning' | 'danger' | 'success' = 'neutral'
-  let glyph = '⌑'
-  let heading = 'Recommendation locked'
-  let copy = 'Recommendation becomes available after deterministic resolution.'
+  let tone: 'neutral' | 'info' | 'warning' | 'danger' | 'success' = 'neutral'
+  let icon: IconName = 'activity'
+  let heading = viewModel.currentMoment?.title ?? 'Workflow update'
+  let copy = viewModel.currentMoment?.description ?? ''
 
-  if (state.playbackStatus === 'waiting_failure_injection') {
+  if (viewModel.earlyStory.showIntakeContext) {
+    tone = 'info'
+    icon = 'message'
+    heading = 'Intake'
+    copy = 'Receiving the complaint and supporting evidence.'
+  } else if (state.playbackStatus === 'waiting_failure_injection') {
     tone = 'success'
-    glyph = '✓'
+    icon = 'check'
     heading = viewModel.currentMoment?.title ?? 'Failure injection ready'
     copy = viewModel.currentMoment?.description ?? ''
   } else if (context.type === 'approval') {
     tone = 'warning'
-    glyph = '◷'
+    icon = 'clock'
     heading = 'Approval required'
     copy = context.copy
   } else if (context.type === 'failure') {
     tone = 'danger'
-    glyph = '!'
-    heading = 'Finance posting failed'
+    icon = 'alert'
+    heading = 'Contractor rejected'
     copy = context.copy
   } else if (context.type === 'recovery') {
     tone = 'warning'
-    glyph = '↻'
+    icon = 'refresh'
     heading = 'Recovery in progress'
     copy = context.copy
   } else if (context.type === 'recovered') {
     tone = 'success'
-    glyph = '✓'
+    icon = 'check'
     heading = 'Recovery complete'
     copy = context.copy
   } else if (context.type === 'recommendation') {
     tone = 'success'
-    glyph = '✓'
+    icon = 'check'
     heading = 'Recommendation'
     copy = context.copy
   } else if (state.approvalStatus === 'approved') {
     tone = 'success'
-    glyph = '✓'
+    icon = 'check'
     heading = 'Resolution package approved'
-    copy = 'The approved package is ready for deterministic finance posting.'
+    copy = 'The approved package is ready. Initiating repair contractor assignment.'
   }
 
   return (
     <article
       className={styles.contextCard}
       data-tone={tone}
+      data-focus={viewModel.focusTarget === 'approval' ? 'primary' : undefined}
       role={context.type === 'failure' ? 'alert' : 'status'}
       aria-labelledby="context-status-heading"
     >
       <span className={styles.contextIcon} aria-hidden="true">
-        {glyph}
+        <Icon name={icon} size={20} />
       </span>
       <div>
         <h3 id="context-status-heading">{heading}</h3>
@@ -615,36 +430,85 @@ function ContextStatusCard({
   )
 }
 
+function ObservabilityIdleState() {
+  return (
+    <article className={styles.observabilityIdle} aria-labelledby="observability-ready-heading">
+      <span aria-hidden="true"><Icon name="shield" size={27} /></span>
+      <div>
+        <h3 id="observability-ready-heading">Trust signals are ready</h3>
+        <p>
+          Activity, evidence, and generated artifacts will appear as the guided
+          workflow begins.
+        </p>
+      </div>
+    </article>
+  )
+}
+
 function TrustObservabilityPanel(props: StaticShellProps) {
+  const isIdle = props.viewModel.earlyStory.isIdle
+  const isTrustFocus =
+    props.viewModel.focusTarget === 'approval' ||
+    props.viewModel.focusTarget === 'resolution'
   return (
     <section
       className={`${styles.panel} ${styles.trustPanel}`}
+      data-focus={
+        props.viewModel.focusTarget === null
+          ? undefined
+          : isTrustFocus
+            ? 'primary'
+            : 'secondary'
+      }
       aria-labelledby="trust-heading"
     >
-      <PanelHeading id="trust-heading" glyph="T">
+      <PanelHeading id="trust-heading" icon="shield">
         Trust &amp; Observability
       </PanelHeading>
-      <MetricGrid viewModel={props.viewModel} />
-      <ArtifactList viewModel={props.viewModel} />
-      <ContextStatusCard {...props} />
+      <div className={styles.trustBody}>
+        <MetricGrid viewModel={props.viewModel} />
+        <div className={styles.trustContent}>
+          {isIdle ? (
+            <ObservabilityIdleState />
+          ) : props.viewModel.finalOutcome !== null ? (
+            <FinalOutcome viewModel={props.viewModel} />
+          ) : props.viewModel.approvalGate !== null ? (
+            <ApprovalDecisionCard
+              viewModel={props.viewModel}
+              actions={props.actions}
+            />
+          ) : (
+            <>
+              <ArtifactList viewModel={props.viewModel} />
+              {props.viewModel.outcomePreview !== null ? (
+                <OutcomePreview viewModel={props.viewModel} />
+              ) : shouldShowContextCard(props.state, props.viewModel) ? (
+                <ContextStatusCard {...props} />
+              ) : (
+                <DecisionRationale viewModel={props.viewModel} />
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
 
 const playbackControls = [
-  { label: 'Start', glyph: '▶', variant: 'primary', key: 'start' },
-  { label: 'Pause', glyph: 'Ⅱ', variant: 'neutral', key: 'pause' },
-  { label: 'Resume', glyph: '▶', variant: 'neutral', key: 'resume' },
+  { label: 'Start', icon: 'play', variant: 'primary', key: 'start' },
+  { label: 'Pause', icon: 'pause', variant: 'neutral', key: 'pause' },
+  { label: 'Resume', icon: 'play', variant: 'neutral', key: 'resume' },
   {
     label: 'Next Moment',
-    glyph: '▶|',
+    icon: 'skip',
     variant: 'neutral',
     key: 'nextMoment',
   },
-  { label: 'Restart', glyph: '↻', variant: 'neutral', key: 'restart' },
+  { label: 'Restart', icon: 'refresh', variant: 'neutral', key: 'restart' },
   {
     label: 'Inject Failure',
-    glyph: '!',
+    icon: 'alert',
     variant: 'danger',
     key: 'injectFailure',
   },
@@ -675,7 +539,7 @@ function PlaybackControls({
   return (
     <footer className={styles.playbackBar} aria-labelledby="playback-heading">
       <div className={styles.playbackLabel}>
-        <span aria-hidden="true">▶</span>
+        <span aria-hidden="true"><Icon name="play" size={17} /></span>
         <h2 id="playback-heading">Demo Playback Controls</h2>
       </div>
       <div className={styles.transportGroup} aria-label="Playback controls">
@@ -687,7 +551,7 @@ function PlaybackControls({
             onClick={handlers[control.key]}
             key={control.label}
           >
-            <span aria-hidden="true">{control.glyph}</span>
+            <Icon name={control.icon} size={19} aria-hidden="true" />
             {control.label}
           </button>
         ))}
@@ -703,7 +567,7 @@ function PlaybackControls({
           disabled={!viewModel.controls.canSelectPresenter}
           onClick={() => actions.selectMode('presenter')}
         >
-          <span aria-hidden="true">P</span>
+          <Icon name="user" size={19} aria-hidden="true" />
           Presenter Mode
         </button>
         <button
@@ -715,7 +579,7 @@ function PlaybackControls({
           disabled={!viewModel.controls.canSelectAuto}
           onClick={() => actions.selectMode('auto')}
         >
-          <span aria-hidden="true">A</span>
+          <Icon name="bot" size={19} aria-hidden="true" />
           Auto Mode
         </button>
       </div>
@@ -724,17 +588,36 @@ function PlaybackControls({
 }
 
 export function StaticShell(props: StaticShellProps) {
+  const canvasScale = props.canvasScale ?? 1
+  const scaledWidth = DESIGN_SURFACE_WIDTH * canvasScale
+  const scaledHeight = DESIGN_SURFACE_HEIGHT * canvasScale
   return (
-    <main className={styles.viewport} data-playback-status={props.state.playbackStatus}>
-      <div className={styles.scaleFrame}>
+    <main
+      className={`${styles.viewport} ${props.embedded ? styles.embeddedViewport : ''}`}
+      data-playback-status={props.state.playbackStatus}
+      data-embedded={props.embedded ? 'true' : undefined}
+      style={
+        props.embedded
+          ? { width: scaledWidth, minHeight: scaledHeight, height: scaledHeight }
+          : undefined
+      }
+    >
+      <div
+        className={styles.scaleFrame}
+        style={{ width: scaledWidth, height: scaledHeight }}
+      >
         <div
           className={styles.surface}
           data-composition="runtime-progressive"
           data-testid="canonical-design-surface"
+          style={{ transform: `scale(${canvasScale})` }}
         >
-          <DemoHeader viewModel={props.viewModel} />
+          <DemoHeader
+            viewModel={props.viewModel}
+            headerActions={props.headerActions}
+          />
           <div className={styles.workspace}>
-            <CustomerExperiencePanel />
+            <CustomerPanel viewModel={props.viewModel} />
             <AgenticFlowPanel state={props.state} viewModel={props.viewModel} />
             <TrustObservabilityPanel {...props} />
           </div>

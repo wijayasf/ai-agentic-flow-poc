@@ -5,16 +5,50 @@ import type {
   RuntimeMoment,
   RuntimeStage,
 } from '../runtime-fixtures/types'
+import {
+  AGENT_ORDER,
+  APPROVAL_GATE_PRESENTATION,
+  APPROVED_FINAL_OUTCOME,
+  ESCALATED_FINAL_OUTCOME,
+  FOCUS_BY_MOMENT,
+  NOW_NEXT_BY_STAGE,
+  OUTCOME_PREVIEW,
+  RATIONALE_BY_MOMENT,
+  REJECTION_ACTIVITY_EVENT,
+  TRANSITION_BY_MOMENT,
+  lifecycleForMoment,
+} from './presentation'
 import { isRuntimeActionLegal } from './transitions'
 import type {
+  AgentLifecyclePresentation,
+  ApprovalGatePresentation,
   ArtifactPresentation,
+  DecisionRationalePresentation,
+  EarlyStoryPhase,
+  EarlyStoryPresentation,
+  FinalOutcomePresentation,
+  NowNextPresentation,
+  OutcomePreviewPresentation,
   RuntimeContext,
   RuntimeControlAvailability,
+  RuntimeFocusTarget,
   RuntimeState,
   RuntimeTimerPresentation,
+  RuntimeTransitionPresentation,
   RuntimeViewModel,
   StagePresentation,
 } from './types'
+
+const EARLY_STORY_SECONDS = {
+  customerIdentity: 2,
+  customerMessage: 3,
+  leakagePhoto: 4,
+  handoverAgreement: 5,
+  paymentReceipt: 6,
+  aiTyping: 7,
+  aiAcknowledgement: 9,
+  intakeContextEnd: 12,
+} as const
 
 export function selectCurrentMoment(
   state: RuntimeState,
@@ -62,10 +96,13 @@ export function selectVisibleEvents(
   const eventById = new Map(
     fixtures.events.events.map((event) => [event.id, event] as const),
   )
-  return fixtures.timeline.eventRevealOrder
+  const fixtureEvents = fixtures.timeline.eventRevealOrder
     .filter((eventId) => visibleIds.has(eventId))
     .map((eventId) => eventById.get(eventId))
     .filter((event) => event !== undefined)
+  return state.approvalStatus === 'rejected'
+    ? [...fixtureEvents, REJECTION_ACTIVITY_EVENT]
+    : fixtureEvents
 }
 
 function artifactStatus(
@@ -74,6 +111,7 @@ function artifactStatus(
 ): ArtifactPresentation['status'] {
   if (!state.availableArtifactIds.includes(artifactId)) return 'locked'
   if (artifactId !== 'artifact-approval') return 'available'
+  if (state.approvalStatus === 'rejected') return 'locked'
   if (state.approvalStatus === 'approved') return 'approved'
   if (state.approvalStatus === 'pending') return 'pending'
   return 'available'
@@ -137,6 +175,206 @@ export function selectTimer(
   }
 }
 
+function earlyStoryPhase(
+  state: RuntimeState,
+  currentStage: RuntimeStage | null,
+): EarlyStoryPhase {
+  if (state.playbackStatus === 'idle') return 'idle'
+  if (currentStage !== null && currentStage !== 'Intake') return 'investigation'
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.aiAcknowledgement) {
+    return 'acknowledged'
+  }
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.aiTyping) return 'ai_typing'
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.paymentReceipt) {
+    return 'payment_receipt'
+  }
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.handoverAgreement) {
+    return 'handover_agreement'
+  }
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.leakagePhoto) {
+    return 'leakage_photo'
+  }
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.customerMessage) {
+    return 'customer_message'
+  }
+  if (state.elapsedSeconds >= EARLY_STORY_SECONDS.customerIdentity) {
+    return 'customer_identity'
+  }
+  return 'customer_typing'
+}
+
+export function selectEarlyStory(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): EarlyStoryPresentation {
+  const currentStage = selectCurrentStage(state, fixtures)
+  const phase = earlyStoryPhase(state, currentStage)
+  const isIdle = phase === 'idle'
+  const elapsed = state.elapsedSeconds
+  const visibleAttachmentCount: 0 | 1 | 2 | 3 =
+    elapsed >= EARLY_STORY_SECONDS.paymentReceipt
+      ? 3
+      : elapsed >= EARLY_STORY_SECONDS.handoverAgreement
+        ? 2
+        : elapsed >= EARLY_STORY_SECONDS.leakagePhoto
+          ? 1
+          : 0
+  const showAiAcknowledgement =
+    !isIdle && elapsed >= EARLY_STORY_SECONDS.aiAcknowledgement
+
+  return {
+    phase,
+    isIdle,
+    showCustomerTyping: phase === 'customer_typing',
+    showCustomerIdentity:
+      !isIdle && elapsed >= EARLY_STORY_SECONDS.customerIdentity,
+    showCustomerMessage:
+      !isIdle && elapsed >= EARLY_STORY_SECONDS.customerMessage,
+    visibleAttachmentCount: isIdle ? 0 : visibleAttachmentCount,
+    showAiTyping: phase === 'ai_typing',
+    showAiAcknowledgement,
+    showIntakeContext:
+      currentStage === 'Intake' &&
+      elapsed < EARLY_STORY_SECONDS.intakeContextEnd,
+    workflowIntroduced: showAiAcknowledgement,
+  }
+}
+
+export function selectAgentLifecycle(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): readonly AgentLifecyclePresentation[] {
+  const earlyStory = selectEarlyStory(state, fixtures)
+  const lifecycle = earlyStory.workflowIntroduced
+    ? lifecycleForMoment(state.currentMomentId)
+    : lifecycleForMoment(null)
+
+  if (state.terminalOutcome === 'approved') {
+    return AGENT_ORDER.map((agentId) => ({ agentId, status: 'completed' }))
+  }
+  if (state.terminalOutcome === 'escalated') {
+    return AGENT_ORDER.map((agentId) => ({
+      agentId,
+      status: agentId === 'agent-finance' ? 'blocked' : 'completed',
+    }))
+  }
+
+  return AGENT_ORDER.map((agentId) => ({
+    agentId,
+    status: lifecycle[agentId],
+  }))
+}
+
+export function selectNowNext(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): NowNextPresentation {
+  if (state.playbackStatus === 'idle') {
+    return { now: 'Demo ready', next: 'Start customer intake' }
+  }
+  if (state.terminalOutcome === 'approved') {
+    return { now: 'Case resolved', next: null }
+  }
+  if (state.terminalOutcome === 'escalated') {
+    return {
+      now: 'Decision escalated',
+      next: 'Management review required',
+    }
+  }
+  if (state.playbackStatus === 'failed') {
+    return {
+      now: 'Contractor rejected task',
+      next: 'Rerouting to alternative contractor',
+    }
+  }
+  if (state.playbackStatus === 'recovering') {
+    return {
+      now: 'Rerouting repair task',
+      next: 'Complete rerouting',
+    }
+  }
+  if (state.approvalStatus === 'approved') {
+    return {
+      now: 'Finalizing customer resolution',
+      next: 'Complete case',
+    }
+  }
+
+  const currentStage = selectCurrentStage(state, fixtures)
+  return currentStage === null
+    ? { now: 'Demo ready', next: 'Start customer intake' }
+    : NOW_NEXT_BY_STAGE[currentStage]
+}
+
+export function selectFocusTarget(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): RuntimeFocusTarget {
+  const earlyStory = selectEarlyStory(state, fixtures)
+  if (earlyStory.isIdle) return null
+  if (state.terminalOutcome !== 'unresolved') return 'resolution'
+  if (!earlyStory.workflowIntroduced) return 'customer-panel'
+  return state.currentMomentId === null ? null : FOCUS_BY_MOMENT[state.currentMomentId]
+}
+
+export function selectDecisionRationale(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): DecisionRationalePresentation | null {
+  if (!selectEarlyStory(state, fixtures).workflowIntroduced) return null
+  return state.currentMomentId === null
+    ? null
+    : RATIONALE_BY_MOMENT[state.currentMomentId]
+}
+
+export function selectRuntimeTransition(
+  state: RuntimeState,
+  fixtures: RuntimeFixtureBundle = runtimeFixtures,
+): RuntimeTransitionPresentation | null {
+  if (!selectEarlyStory(state, fixtures).workflowIntroduced) return null
+  if (state.terminalOutcome === 'escalated') {
+    return {
+      title: 'Decision rejected',
+      next: 'Escalating to management review',
+    }
+  }
+  return state.currentMomentId === null
+    ? null
+    : TRANSITION_BY_MOMENT[state.currentMomentId] ?? null
+}
+
+export function selectApprovalGate(
+  state: RuntimeState,
+): ApprovalGatePresentation | null {
+  return state.playbackStatus === 'waiting_approval' &&
+    state.approvalStatus === 'pending'
+    ? APPROVAL_GATE_PRESENTATION
+    : null
+}
+
+export function selectOutcomePreview(
+  state: RuntimeState,
+): OutcomePreviewPresentation | null {
+  if (
+    state.terminalOutcome !== 'unresolved' ||
+    state.approvalStatus === 'approved' ||
+    state.approvalStatus === 'rejected'
+  ) {
+    return null
+  }
+  return state.currentMomentId === 'M12' || state.currentMomentId === 'M13'
+    ? OUTCOME_PREVIEW
+    : null
+}
+
+export function selectFinalOutcome(
+  state: RuntimeState,
+): FinalOutcomePresentation | null {
+  if (state.terminalOutcome === 'approved') return APPROVED_FINAL_OUTCOME
+  if (state.terminalOutcome === 'escalated') return ESCALATED_FINAL_OUTCOME
+  return null
+}
+
 export function selectControlAvailability(
   state: RuntimeState,
   fixtures: RuntimeFixtureBundle = runtimeFixtures,
@@ -157,6 +395,7 @@ export function selectControlAvailability(
       fixtures,
     ),
     canApprove: isRuntimeActionLegal(state, { type: 'APPROVE' }, fixtures),
+    canReject: isRuntimeActionLegal(state, { type: 'REJECT' }, fixtures),
     canSelectPresenter: isRuntimeActionLegal(
       state,
       { type: 'SELECT_MODE', mode: 'presenter' },
@@ -179,6 +418,8 @@ export function selectRuntimeViewModel(
   const currentMoment = selectCurrentMoment(state, fixtures)
   const visibleEvents = selectVisibleEvents(state, fixtures)
   const artifacts = selectArtifacts(state, fixtures)
+  const earlyStory = selectEarlyStory(state, fixtures)
+  const agentLifecycle = selectAgentLifecycle(state, fixtures)
 
   return {
     mode: state.mode,
@@ -193,9 +434,20 @@ export function selectRuntimeViewModel(
     artifactsProduced: artifacts.filter(
       (artifact) => artifact.status !== 'locked',
     ).length,
-    activeAgentCount: state.activeAgentIds.length,
+    activeAgentCount: agentLifecycle.filter(
+      (agent) => agent.status === 'working',
+    ).length,
     conflictStatus: state.conflictStatus,
     context: selectContext(state, fixtures),
+    earlyStory,
+    agentLifecycle,
+    nowNext: selectNowNext(state, fixtures),
+    focusTarget: selectFocusTarget(state, fixtures),
+    decisionRationale: selectDecisionRationale(state, fixtures),
+    transition: selectRuntimeTransition(state, fixtures),
+    approvalGate: selectApprovalGate(state),
+    outcomePreview: selectOutcomePreview(state),
+    finalOutcome: selectFinalOutcome(state),
     timer: selectTimer(state, fixtures),
     controls: selectControlAvailability(state, fixtures),
   }

@@ -32,6 +32,9 @@ app/dist/
 # Test output
 coverage/
 
+# Local Playwright debug helpers and screenshots (not for the public repository)
+debug-playwright/
+
 # Environment files
 .env
 .env.*

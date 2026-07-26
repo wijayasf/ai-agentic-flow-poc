@@ -32,6 +32,18 @@ function presenterAtApprovalGate(): RuntimeState {
   return dispatch(state, { type: 'ADVANCE_TIME', seconds: 60 })
 }
 
+function autoAtApprovalGate(): RuntimeState {
+  return dispatch(start('auto'), { type: 'ADVANCE_TIME', seconds: 390 })
+}
+
+function approvedAutoAt(seconds: number): RuntimeState {
+  const approved = dispatch(autoAtApprovalGate(), { type: 'APPROVE' })
+  return dispatch(approved, {
+    type: 'ADVANCE_TIME',
+    seconds: seconds - 390,
+  })
+}
+
 function presenterAtFailureGate(): RuntimeState {
   let state = dispatch(presenterAtApprovalGate(), { type: 'APPROVE' })
   state = dispatch(state, { type: 'ADVANCE_TIME', seconds: 45 })
@@ -40,7 +52,10 @@ function presenterAtFailureGate(): RuntimeState {
 
 describe('runtime state and moment entry', () => {
   it('constructs the exact authoritative initial state', () => {
-    expect(createInitialRuntimeState()).toEqual(runtimeFixtures.initialState)
+    expect(createInitialRuntimeState()).toEqual({
+      ...runtimeFixtures.initialState,
+      terminalOutcome: 'unresolved',
+    })
   })
 
   it('starts at M01 and applies its entry effects once', () => {
@@ -121,10 +136,7 @@ describe('legal transitions', () => {
     const running = start()
     const waitingApproval = presenterAtApprovalGate()
     const waitingFailureInjection = presenterAtFailureGate()
-    const failed = dispatch(start('auto'), {
-      type: 'ADVANCE_TIME',
-      seconds: 435,
-    })
+    const failed = approvedAutoAt(435)
     const recovering = dispatch(failed, { type: 'ADVANCE_TIME', seconds: 20 })
     const completed = simulateAutoRun()
     const pausedAuto = dispatch(start('auto'), { type: 'PAUSE' })
@@ -165,6 +177,7 @@ describe('legal transitions', () => {
       { type: 'RESUME' },
       { type: 'NEXT_MOMENT' },
       { type: 'APPROVE' },
+      { type: 'REJECT' },
       { type: 'INJECT_FAILURE' },
       { type: 'ADVANCE_TIME', seconds: 30 },
     ]
@@ -237,6 +250,51 @@ describe('Presenter gates and deterministic recovery', () => {
     })
     expect(approved.visibleEventIds.at(-1)).toBe('evt-10')
     expect(dispatch(approved, { type: 'APPROVE' })).toBe(approved)
+    expect(dispatch(approved, { type: 'REJECT' })).toBe(approved)
+  })
+
+  it('stops both modes at one explicit approval gate', () => {
+    const presenter = presenterAtApprovalGate()
+    const auto = autoAtApprovalGate()
+
+    for (const state of [presenter, auto]) {
+      expect(state).toMatchObject({
+        currentMomentId: 'M13',
+        playbackStatus: 'waiting_approval',
+        approvalStatus: 'pending',
+        terminalOutcome: 'unresolved',
+        elapsedSeconds: 390,
+        timerActive: false,
+      })
+      expect(isRuntimeActionLegal(state, { type: 'APPROVE' })).toBe(true)
+      expect(isRuntimeActionLegal(state, { type: 'REJECT' })).toBe(true)
+      expect(dispatch(state, { type: 'SELECT_MODE', mode: 'auto' })).toBe(state)
+      expect(dispatch(state, { type: 'SELECT_MODE', mode: 'presenter' })).toBe(
+        state,
+      )
+      expect(dispatch(state, { type: 'ADVANCE_TIME', seconds: 300 })).toBe(state)
+    }
+  })
+
+  it('rejects exactly once and creates a terminal escalation without approved artifacts', () => {
+    const gate = autoAtApprovalGate()
+    const rejected = dispatch(gate, { type: 'REJECT' })
+
+    expect(rejected).toMatchObject({
+      currentMomentId: 'M13',
+      playbackStatus: 'completed',
+      approvalStatus: 'rejected',
+      terminalOutcome: 'escalated',
+      timerActive: false,
+    })
+    expect(rejected.availableArtifactIds).toEqual([
+      'artifact-summary',
+      'artifact-conflict',
+    ])
+    expect(rejected.availableArtifactIds).not.toContain('artifact-approval')
+    expect(rejected.recommendationVisible).toBe(false)
+    expect(dispatch(rejected, { type: 'REJECT' })).toBe(rejected)
+    expect(dispatch(rejected, { type: 'APPROVE' })).toBe(rejected)
   })
 
   it('enforces the M15 injection cue and owned failure/recovery progression', () => {
@@ -292,10 +350,7 @@ describe('Presenter gates and deterministic recovery', () => {
     const running = start()
     const paused = dispatch(running, { type: 'PAUSE' })
     const waitingApproval = presenterAtApprovalGate()
-    const failed = dispatch(start('auto'), {
-      type: 'ADVANCE_TIME',
-      seconds: 435,
-    })
+    const failed = approvedAutoAt(435)
     const recovering = dispatch(failed, { type: 'ADVANCE_TIME', seconds: 20 })
     const completed = simulateAutoRun()
 
@@ -316,7 +371,11 @@ describe('Presenter gates and deterministic recovery', () => {
 describe('completion, restart, and determinism', () => {
   it('completes Auto Mode at exactly 600 scheduled seconds', () => {
     const completed = simulateAutoRun()
-    expect(completed).toEqual({ ...runtimeFixtures.finalState, mode: 'auto' })
+    expect(completed).toEqual({
+      ...runtimeFixtures.finalState,
+      mode: 'auto',
+      terminalOutcome: 'approved',
+    })
     expect(completed.elapsedSeconds).toBe(600)
     expect(completed.completedMomentIds).toEqual(MOMENT_IDS)
     expect(completed.visibleEventIds).toEqual(EVENT_REVEAL_ORDER)
@@ -325,7 +384,10 @@ describe('completion, restart, and determinism', () => {
 
   it('completes Presenter Mode through all explicit gates', () => {
     const completed = simulatePresenterRun()
-    expect(completed).toEqual(runtimeFixtures.finalState)
+    expect(completed).toEqual({
+      ...runtimeFixtures.finalState,
+      terminalOutcome: 'approved',
+    })
     expect(completed.elapsedSeconds).toBe(600)
   })
 
@@ -341,14 +403,15 @@ describe('completion, restart, and determinism', () => {
   it('restarts exactly and preserves the selected mode from every runtime phase', () => {
     const running = start('auto')
     const paused = dispatch(running, { type: 'PAUSE' })
-    const failed = dispatch(start('auto'), { type: 'ADVANCE_TIME', seconds: 435 })
+    const failed = approvedAutoAt(435)
     const recovering = dispatch(failed, { type: 'ADVANCE_TIME', seconds: 20 })
     const completed = simulateAutoRun()
+    const rejected = dispatch(autoAtApprovalGate(), { type: 'REJECT' })
 
     const waitingApproval = presenterAtApprovalGate()
     const waitingFailureInjection = presenterAtFailureGate()
 
-    for (const state of [running, paused, failed, recovering, completed]) {
+    for (const state of [running, paused, failed, recovering, completed, rejected]) {
       expect(dispatch(state, { type: 'RESTART' })).toEqual(
         createInitialRuntimeState('auto'),
       )
