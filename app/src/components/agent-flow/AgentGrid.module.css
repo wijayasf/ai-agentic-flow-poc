@@ -130,3 +130,75 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(21, 94, 239, 0.17);
 }
+
+.progressTrack {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  overflow: hidden;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background: #eef1f5;
+}
+
+.progressFill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--color-primary-blue);
+  transition:
+    width 480ms ease-out,
+    background-color 240ms ease;
+}
+
+.card[data-progress='active'] .progressFill {
+  width: 55%;
+  background: var(--color-primary-blue);
+  animation: agentProgressFlow 1.6s ease-in-out infinite alternate;
+}
+
+.card[data-progress='complete'] .progressFill {
+  width: 100%;
+  background: var(--color-success);
+  animation: none;
+}
+
+@keyframes agentProgressFlow {
+  from {
+    width: 45%;
+  }
+  to {
+    width: 78%;
+  }
+}
+
+.activitySubtitle {
+  overflow: hidden;
+  padding: 0 8px;
+  color: #344054;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card[data-state='working'] .activitySubtitle {
+  color: var(--color-primary-blue);
+}
+
+.card[data-state='completed'] .activitySubtitle {
+  color: var(--color-success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill,
+  .card[data-progress='active'] .progressFill {
+    transition: none;
+    animation: none;
+  }
+}

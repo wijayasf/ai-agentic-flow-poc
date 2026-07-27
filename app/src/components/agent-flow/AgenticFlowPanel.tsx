@@ -14,6 +14,7 @@ import {
   selectDispatchingAgentIds,
   selectInvestigationWaveAgentIds,
 } from './dispatch'
+import { selectCommanderInvestigationMonitoring } from './agentActivity'
 import { readSurfaceScaleX, visualDeltaToLayoutDelta } from './surfaceScale'
 import styles from './AgenticFlowPanel.module.css'
 
@@ -35,6 +36,8 @@ export function AgenticFlowPanel({
   )
   const intakeCompletionHold =
     viewModel.currentStage === 'Intake' && customerAgentCompleted
+  const investigationMonitoring =
+    selectCommanderInvestigationMonitoring(viewModel)
   const stackRef = useRef<HTMLDivElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
   const systemConnectorsRef = useRef<HTMLDivElement | null>(null)
@@ -145,6 +148,11 @@ export function AgenticFlowPanel({
           orchestrationActive={viewModel.earlyStory.showAiTyping}
           handoffReady={intakeCompletionHold}
           dispatchingWave={investigationWaveActive}
+          investigationMonitoring={investigationMonitoring}
+          conflictActive={viewModel.currentStage === 'Conflict'}
+          commandActive={
+            viewModel.currentStage !== null && viewModel.finalOutcome === null
+          }
         />
         <div className={styles.agentStack} ref={stackRef}>
           <div
@@ -185,6 +193,7 @@ export function AgenticFlowPanel({
           </div>
           <SystemGrid
             state={state}
+            viewModel={viewModel}
             workflowIntroduced={viewModel.earlyStory.workflowIntroduced}
           />
         </div>

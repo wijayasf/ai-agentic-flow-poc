@@ -372,14 +372,162 @@ describe('AgenticFlowPanel', () => {
     expect(observe(180)).toEqual(['completed', 'completed', 'completed', 'completed'])
   })
 
-  it('clears the investigation-wave attribute after M04 completes', () => {
+  it('surfaces role-specific working subtitles for all three specialists at M04 and marks Commander as monitoring', () => {
+    let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
+      type: 'START',
+    })
+    s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds: 92 })
+    renderPanel(s)
+    const commander = screen.getByLabelText('Case Commander')
+    expect(commander.textContent).toContain('Monitoring Investigation')
+    const list = screen.getByRole('list', { name: 'Specialist agents' })
+    const items = within(list).getAllByRole('listitem')
+    // Customer Complaint Agent (index 0) keeps its Intake-phase skill copy.
+    expect(items[0].textContent).toContain('Image understanding')
+    // Policy / Workflow / Finance each show their working subtitle.
+    expect(items[1].textContent).toContain('Reading Policy Repository')
+    expect(items[2].textContent).toContain('Checking SAP CX case history')
+    expect(items[3].textContent).toContain('Preparing compensation context')
+    // Progress markers reflect the 'active' state.
+    ;[1, 2, 3].forEach((i) => {
+      expect(items[i].getAttribute('data-progress')).toBe('active')
+    })
+  })
+
+  it('replaces working subtitles with completion cues in the correct M05 → M06 → M07 order', () => {
+    const captureAt = (seconds: number) => {
+      let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
+        type: 'START',
+      })
+      s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds })
+      const { unmount } = renderPanel(s)
+      const list = screen.getByRole('list', { name: 'Specialist agents' })
+      const items = within(list).getAllByRole('listitem')
+      const snapshot = {
+        policy: items[1].textContent ?? '',
+        workflow: items[2].textContent ?? '',
+        finance: items[3].textContent ?? '',
+        policyProgress: items[1].getAttribute('data-progress'),
+        workflowProgress: items[2].getAttribute('data-progress'),
+        financeProgress: items[3].getAttribute('data-progress'),
+      }
+      unmount()
+      return snapshot
+    }
+    // M05 entry (t=120): Policy completed, Workflow + Finance still working.
+    const m05 = captureAt(120)
+    expect(m05.policy).toContain('Policy review complete')
+    expect(m05.workflow).toContain('Checking SAP CX case history')
+    expect(m05.finance).toContain('Preparing compensation context')
+    expect(m05.policyProgress).toBe('complete')
+    expect(m05.workflowProgress).toBe('active')
+    expect(m05.financeProgress).toBe('active')
+    // M06 entry (t=150): Workflow completes; Finance still working.
+    const m06 = captureAt(150)
+    expect(m06.policy).toContain('Policy review complete')
+    expect(m06.workflow).toContain('Workflow review complete')
+    expect(m06.finance).toContain('Preparing compensation context')
+    expect(m06.workflowProgress).toBe('complete')
+    expect(m06.financeProgress).toBe('active')
+    // M07 entry (t=180): all three completed.
+    const m07 = captureAt(180)
+    expect(m07.policy).toContain('Policy review complete')
+    expect(m07.workflow).toContain('Workflow review complete')
+    expect(m07.finance).toContain('Finance review complete')
+    expect(m07.financeProgress).toBe('complete')
+  })
+
+  it('keeps the Commander in the monitoring phase across M04, M05, M06, M07, and M08', () => {
+    const phaseAt = (seconds: number) => {
+      let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
+        type: 'START',
+      })
+      s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds })
+      const { unmount } = renderPanel(s)
+      const commander = screen.getByLabelText('Case Commander')
+      const phase = commander.getAttribute('data-phase')
+      const subtitle = commander.textContent
+      unmount()
+      return { phase, subtitle }
+    }
+    // M04 wave window (0–1.5s of M04) shows 'dispatching-wave'; from ~M04 mid onwards it stays monitoring.
+    // Sample at M05, M06, M07, M08 for the steady state.
+    ;[120, 150, 180, 210].forEach((t) => {
+      const { phase, subtitle } = phaseAt(t)
+      expect(phase).toBe('monitoring')
+      expect(subtitle).toContain('Monitoring Investigation')
+    })
+    // M09 (Conflict stage) — monitoring should clear.
+    const post = phaseAt(240)
+    expect(post.phase).toBeNull()
+    expect(post.subtitle).toContain('Orchestrating agents')
+  })
+
+  it('marks each enterprise system as settled when its paired specialist completes', () => {
+    const systemStatesAt = (seconds: number) => {
+      let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
+        type: 'START',
+      })
+      s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds })
+      const { unmount } = renderPanel(s)
+      const list = screen.getByRole('list', { name: 'Enterprise systems' })
+      const items = within(list).getAllByRole('listitem')
+      const settled = items.map((item) => item.getAttribute('data-settled'))
+      const paired = items.map((item) =>
+        item.getAttribute('data-paired-agent-status'),
+      )
+      unmount()
+      return { settled, paired }
+    }
+    // M04 (t=90): all three specialists working — CRM already settled (Customer
+    // Complaint Agent completed intake at M03); the three investigation systems
+    // are engaged but not yet settled.
+    const m04 = systemStatesAt(90)
+    expect(m04.paired).toEqual(['completed', 'working', 'working', 'working'])
+    expect(m04.settled).toEqual(['true', null, null, null])
+    // M05 (t=120): Policy Repository (index 1) settles.
+    const m05 = systemStatesAt(120)
+    expect(m05.paired).toEqual(['completed', 'completed', 'working', 'working'])
+    expect(m05.settled).toEqual(['true', 'true', null, null])
+    // M06 (t=150): SAP CX (index 2) settles.
+    const m06 = systemStatesAt(150)
+    expect(m06.paired).toEqual(['completed', 'completed', 'completed', 'working'])
+    expect(m06.settled).toEqual(['true', 'true', 'true', null])
+    // M07 (t=180): SAP S/4HANA (index 3) settles.
+    const m07 = systemStatesAt(180)
+    expect(m07.paired).toEqual(['completed', 'completed', 'completed', 'completed'])
+    expect(m07.settled).toEqual(['true', 'true', 'true', 'true'])
+  })
+
+  it('does not surface any Investigation activity subtitle before M04', () => {
+    let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
+      type: 'START',
+    })
+    s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds: 30 })
+    renderPanel(s)
+    // Working subtitles must not appear during Intake — agents are waiting.
+    expect(screen.queryByText(/Reading Policy Repository/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Checking SAP CX case history/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Preparing compensation context/)).not.toBeInTheDocument()
+    // Completion cues also absent.
+    expect(screen.queryByText(/Policy review complete/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Workflow review complete/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Finance review complete/)).not.toBeInTheDocument()
+    // Commander is not in monitoring phase during Intake.
+    const commander = screen.getByLabelText('Case Commander')
+    expect(commander.textContent).not.toContain('Monitoring Investigation')
+  })
+
+  it('clears the investigation-wave attribute after M04 completes and hands off to the monitoring phase', () => {
     let s = transitionRuntimeState(createInitialRuntimeState('auto'), {
       type: 'START',
     })
     s = transitionRuntimeState(s, { type: 'ADVANCE_TIME', seconds: 120 })
     const { container } = renderPanel(s)
     const commander = screen.getByLabelText('Case Commander')
-    expect(commander.getAttribute('data-phase')).toBeNull()
+    // US-10A: throughout Investigation (M04–M08) the Commander sits in the
+    // 'monitoring' steady state after the initial dispatch wave completes.
+    expect(commander.getAttribute('data-phase')).toBe('monitoring')
     const rail = container.querySelector('[data-testid="agent-connector-rail"]')
     const railSpans = Array.from(rail?.children ?? []) as HTMLElement[]
     railSpans.forEach((span) => {

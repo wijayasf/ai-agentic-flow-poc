@@ -194,6 +194,29 @@
   flex: 1;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.trustContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.trustContent::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.14);
+  border-radius: 3px;
+}
+
+.trustContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trustContent {
+    scroll-behavior: auto;
+  }
 }
 
 .trustContent > .observabilityIdle,

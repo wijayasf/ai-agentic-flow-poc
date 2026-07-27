@@ -1,4 +1,6 @@
+/* Standby (blue) — calm, static. Approved existing identity. */
 .card {
+  position: relative;
   display: grid;
   width: 316px;
   height: 69px;
@@ -10,115 +12,10 @@
   background: #f7faff;
   box-shadow: var(--shadow-card-active);
   transition:
-    border-color 240ms ease,
-    background 240ms ease,
-    box-shadow 240ms ease;
-}
-
-.card[data-orchestrating='true'] {
-  border-color: #4c86eb;
-  background: #e6efff;
-  animation: commanderPulse 1.4s ease-in-out infinite;
-}
-
-.card[data-orchestrating='true'] > span:first-child {
-  animation: commanderIconPulse 1.4s ease-in-out infinite;
-}
-
-@keyframes commanderPulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 0 rgba(21, 94, 239, 0.05),
-      var(--shadow-card-active);
-  }
-  50% {
-    box-shadow:
-      0 0 0 10px rgba(21, 94, 239, 0.18),
-      0 10px 26px rgba(21, 94, 239, 0.24);
-  }
-}
-
-@keyframes commanderIconPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.09);
-  }
-}
-
-.card[data-phase='ready'] {
-  border-color: #a8c8f7;
-  background: #f0f5ff;
-  box-shadow:
-    0 0 0 3px rgba(21, 94, 239, 0.08),
-    var(--shadow-card-active);
-  transition:
     border-color 320ms ease,
     background 320ms ease,
-    box-shadow 320ms ease;
-}
-
-.card[data-phase='dispatching-wave'] {
-  border-color: #4c86eb;
-  background: #e6efff;
-  animation: commanderDispatchWave 1500ms ease-out 1 both;
-}
-
-.card[data-phase='dispatching-wave'] > span:first-child {
-  animation: commanderDispatchWaveIcon 1500ms ease-out 1 both;
-}
-
-@keyframes commanderDispatchWave {
-  0% {
-    box-shadow:
-      0 0 0 0 rgba(21, 94, 239, 0),
-      var(--shadow-card-active);
-  }
-  30% {
-    box-shadow:
-      0 0 0 12px rgba(21, 94, 239, 0.22),
-      0 12px 32px rgba(21, 94, 239, 0.28);
-  }
-  100% {
-    box-shadow:
-      0 0 0 4px rgba(21, 94, 239, 0.08),
-      var(--shadow-card-active);
-  }
-}
-
-@keyframes commanderDispatchWaveIcon {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card[data-orchestrating='true'],
-  .card[data-orchestrating='true'] > span:first-child {
-    animation: none;
-  }
-
-  .card[data-phase='ready'] {
-    transition: none;
-  }
-
-  .card[data-phase='dispatching-wave'],
-  .card[data-phase='dispatching-wave'] > span:first-child {
-    animation: none;
-  }
-}
-
-.card > span:first-child {
-  margin-left: 15px;
+    box-shadow 320ms ease,
+    color 320ms ease;
 }
 
 .card > div {
@@ -129,9 +26,106 @@
 .card > div strong {
   color: var(--color-text-strong);
   font-size: 15px;
+  transition: color 320ms ease;
 }
 
 .card > div span {
   color: var(--color-text-muted);
   font-size: 10px;
+  transition: color 320ms ease;
+}
+
+.glyph {
+  display: grid;
+  margin-left: 15px;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: #dbeafe;
+  border: 1px solid #b8d2ff;
+  transition:
+    background 320ms ease,
+    border-color 320ms ease;
+}
+
+.glyphImage {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* Command Mode (red) — full component takes on a red identity while the
+ * Commander is actively orchestrating. Border, background, glyph badge,
+ * title, and status accent all flip. A subtle breathing pulse marks the
+ * component as the orchestration focal point. */
+.card[data-command-mode='active'] {
+  border-color: #d92d20;
+  background: #fef3f2;
+  box-shadow:
+    0 0 0 2px rgba(217, 45, 32, 0.14),
+    var(--shadow-card-active);
+  animation: commanderCommandBreathe 1800ms ease-in-out infinite;
+}
+
+.card[data-command-mode='active'] .glyph {
+  background: #fee4e2;
+  border-color: #d92d20;
+}
+
+.card[data-command-mode='active'] > div strong {
+  color: #b42318;
+}
+
+.card[data-command-mode='active'] > div span {
+  color: #b42318;
+}
+
+@keyframes commanderCommandBreathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(217, 45, 32, 0.14),
+      0 0 12px 2px rgba(217, 45, 32, 0.14),
+      var(--shadow-card-active);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(217, 45, 32, 0.28),
+      0 0 22px 6px rgba(217, 45, 32, 0.22),
+      var(--shadow-card-active);
+  }
+}
+
+/* Command Mode + Conflict — same red identity, stronger halo intensity. */
+.card[data-command-mode='active'][data-attention='conflict'] {
+  animation: commanderCommandBreatheStrong 1400ms ease-in-out infinite;
+}
+
+@keyframes commanderCommandBreatheStrong {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(217, 45, 32, 0.28),
+      0 0 20px 4px rgba(217, 45, 32, 0.22),
+      var(--shadow-card-active);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(217, 45, 32, 0.44),
+      0 0 32px 10px rgba(217, 45, 32, 0.36),
+      var(--shadow-card-active);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card[data-command-mode='active'],
+  .card[data-command-mode='active'][data-attention='conflict'] {
+    animation: none;
+  }
 }

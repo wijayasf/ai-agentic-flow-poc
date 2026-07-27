@@ -323,6 +323,8 @@ describe('StaticShell runtime presentation', () => {
     const actions = createActions()
     renderShell(presenterAtApprovalGate(), actions)
 
+    // REV-13: ApprovalDecisionCard is preserved verbatim; HumanApproval wrapper
+    // sits above it as a presentation divider only.
     expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
     expect(screen.getByText('Reopen SAP CX case and schedule urgent inspection')).toBeInTheDocument()
     expect(screen.getByText('Handover Clause 8.2 and Defect Policy 4.1 require resolution')).toBeInTheDocument()
@@ -332,6 +334,10 @@ describe('StaticShell runtime presentation', () => {
     expect(screen.getByText('Approved per financial calculation (Finance Agent)')).toBeInTheDocument()
     expect(screen.getByText('High customer and reputational risk')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Likely Outcome' })).toBeInTheDocument()
+    // REV-13D — Human Approval wrapper renders above the ApprovalDecisionCard.
+    expect(screen.getByTestId('human-approval-divider')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Human Approval' })).toBeInTheDocument()
+    // Buttons are owned by the existing ApprovalDecisionCard.
     const approveButton = screen.getByRole('button', { name: 'Approve' })
     const rejectButton = screen.getByRole('button', { name: 'Reject' })
     expect(approveButton).toBeEnabled()
@@ -355,7 +361,15 @@ describe('StaticShell runtime presentation', () => {
     expect(
       screen.getByAltText('Preview of the fictional payment receipt'),
     ).toBeInTheDocument()
-    expect(container.querySelectorAll('img')).toHaveLength(4)
+    // 4 story assets + 3 bundled brand asset images
+    // + 1 Case Commander glyph (user-star) + 1 Policy Repository icon (file-text-blue).
+    expect(container.querySelectorAll('img')).toHaveLength(9)
+    expect(
+      container.querySelectorAll('img[src^="/assets/brands/"]'),
+    ).toHaveLength(3)
+    expect(
+      container.querySelectorAll('img[src^="/assets/icons/"]'),
+    ).toHaveLength(2)
     expect(container.innerHTML).not.toMatch(/https?:\/\//i)
     expect(container.querySelectorAll('[src^="http"], [href^="http"]')).toHaveLength(0)
     expect(container.querySelectorAll('[style*="url("]')).toHaveLength(0)

@@ -9,6 +9,7 @@ import { AttachmentList } from './AttachmentList'
 import { ComplaintCard } from './ComplaintCard'
 import type { ComplaintChip } from './ComplaintCard'
 import complaintChipStyles from './ComplaintCard.module.css'
+import { CustomerClosure } from './CustomerClosure'
 import { CustomerIdentity } from './CustomerIdentity'
 import { IdleDemoFraming } from './IdleDemoFraming'
 import styles from './CustomerPanel.module.css'
@@ -214,6 +215,8 @@ export function CustomerPanel({
               ) : null}
             </article>
           ) : null}
+
+          <CustomerClosure viewModel={viewModel} />
         </div>
       )}
     </section>

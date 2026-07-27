@@ -8,6 +8,12 @@ import { agents } from '../agent-flow/config'
 import type { AgentTone } from '../agent-flow/config'
 import { AgenticFlowPanel } from '../agent-flow/AgenticFlowPanel'
 import { artifactTrailingGlyph } from '../trust/artifactTrailingGlyph'
+import { ConflictDetection } from '../trust/ConflictDetection'
+import { EvidenceCorrelation } from '../trust/EvidenceCorrelation'
+import { HumanApproval } from '../trust/HumanApproval'
+import { InvestigationEvidence } from '../trust/InvestigationEvidence'
+import { NotificationStrip } from '../trust/NotificationStrip'
+import { ResolutionBrief } from '../trust/ResolutionBrief'
 import { shouldShowContextCard } from '../trust/shouldShowContextCard'
 import type { SceneId } from '../../domain/runtime-fixtures/types'
 import type {
@@ -467,29 +473,47 @@ function TrustObservabilityPanel(props: StaticShellProps) {
       </PanelHeading>
       <div className={styles.trustBody}>
         <MetricGrid viewModel={props.viewModel} />
+        <NotificationStrip state={props.state} />
         <div className={styles.trustContent}>
           {isIdle ? (
             <ObservabilityIdleState />
           ) : props.viewModel.finalOutcome !== null ? (
             <FinalOutcome viewModel={props.viewModel} />
-          ) : props.viewModel.approvalGate !== null ? (
-            <ApprovalDecisionCard
-              viewModel={props.viewModel}
-              actions={props.actions}
-            />
           ) : (
             <>
+              <ResolutionBrief
+                state={props.state}
+                viewModel={props.viewModel}
+              />
               <ArtifactList viewModel={props.viewModel} />
-              {props.viewModel.outcomePreview !== null ? (
-                <OutcomePreview viewModel={props.viewModel} />
-              ) : shouldShowContextCard(props.state, props.viewModel) ? (
-                <ContextStatusCard {...props} />
-              ) : (
-                <DecisionRationale viewModel={props.viewModel} />
-              )}
+              <InvestigationEvidence viewModel={props.viewModel} />
+              <EvidenceCorrelation
+                state={props.state}
+                viewModel={props.viewModel}
+              />
+              <ConflictDetection
+                state={props.state}
+                viewModel={props.viewModel}
+              />
+              {props.viewModel.approvalGate === null ? (
+                props.viewModel.outcomePreview !== null ? (
+                  <OutcomePreview viewModel={props.viewModel} />
+                ) : shouldShowContextCard(props.state, props.viewModel) ? (
+                  <ContextStatusCard {...props} />
+                ) : (
+                  <DecisionRationale viewModel={props.viewModel} />
+                )
+              ) : null}
             </>
           )}
         </div>
+        <HumanApproval state={props.state} viewModel={props.viewModel} />
+        {props.viewModel.approvalGate !== null ? (
+          <ApprovalDecisionCard
+            viewModel={props.viewModel}
+            actions={props.actions}
+          />
+        ) : null}
       </div>
     </section>
   )
