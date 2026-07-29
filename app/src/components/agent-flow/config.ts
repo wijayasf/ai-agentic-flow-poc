@@ -56,6 +56,8 @@ export const agents: ReadonlyArray<AgentConfig> = [
   },
 ]
 
+const ASSET_BASE = import.meta.env.BASE_URL
+
 export const systems: ReadonlyArray<SystemConfig> = [
   {
     id: 'system-crm',
@@ -63,7 +65,7 @@ export const systems: ReadonlyArray<SystemConfig> = [
     icon: 'database',
     tone: 'green',
     brandAsset: {
-      src: '/assets/brands/salesforce-cloud.png',
+      src: `${ASSET_BASE}assets/brands/salesforce-cloud.png`,
       alt: '',
     },
   },
@@ -73,7 +75,7 @@ export const systems: ReadonlyArray<SystemConfig> = [
     icon: 'policy',
     tone: 'violet',
     brandAsset: {
-      src: '/assets/icons/file-text-blue.png',
+      src: `${ASSET_BASE}assets/icons/file-text-blue.png`,
       alt: '',
     },
   },
@@ -83,7 +85,7 @@ export const systems: ReadonlyArray<SystemConfig> = [
     icon: 'system',
     tone: 'blue',
     brandAsset: {
-      src: '/assets/brands/sap-cx-symbol.png',
+      src: `${ASSET_BASE}assets/brands/sap-cx-symbol.png`,
       alt: '',
     },
   },
@@ -93,7 +95,7 @@ export const systems: ReadonlyArray<SystemConfig> = [
     icon: 'database',
     tone: 'orange',
     brandAsset: {
-      src: '/assets/brands/sap-s4hana-symbol.png',
+      src: `${ASSET_BASE}assets/brands/sap-s4hana-symbol.png`,
       alt: '',
     },
   },

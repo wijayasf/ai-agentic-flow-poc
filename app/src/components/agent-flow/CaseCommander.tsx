@@ -4,7 +4,7 @@ const DEFAULT_SUBTITLE = 'Coordinating specialist agents'
 const ORCHESTRATION_SUBTITLE = 'Dispatching…'
 const RECEIVING_SUBTITLE = 'Receiving specialist result'
 const FINALISING_SUBTITLE = 'Preparing final customer response'
-const OFFICER_GLYPH_SRC = '/assets/icons/user-star.png'
+const OFFICER_GLYPH_SRC = `${import.meta.env.BASE_URL}assets/icons/user-star.png`
 
 export type AgenticCaseOfficerPhase =
   | 'idle'
