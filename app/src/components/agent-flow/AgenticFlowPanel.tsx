@@ -1,22 +1,60 @@
 import { useLayoutEffect, useRef } from 'react'
 import { PanelHeading } from '../primitives/PanelHeading'
+import type { MomentId } from '../../domain/runtime-fixtures/types'
 import type { RuntimeState, RuntimeViewModel } from '../../domain/runtime'
 import shellStyles from '../static-shell/StaticShell.module.css'
 import { ActivityTraceTable } from './ActivityTraceTable'
 import { AgentGrid } from './AgentGrid'
-import { CaseCommander } from './CaseCommander'
-import { ConflictStatus } from './ConflictStatus'
+import { AgenticCaseOfficer, type AgenticCaseOfficerPhase } from './CaseCommander'
 import { NowNext } from './NowNext'
 import { StageStepper } from './StageStepper'
 import { SystemGrid } from './SystemGrid'
 import { TransitionStatus } from './TransitionStatus'
-import {
-  selectDispatchingAgentIds,
-  selectInvestigationWaveAgentIds,
-} from './dispatch'
-import { selectCommanderInvestigationMonitoring } from './agentActivity'
+import { selectDispatchingAgentIds } from './dispatch'
 import { readSurfaceScaleX, visualDeltaToLayoutDelta } from './surfaceScale'
 import styles from './AgenticFlowPanel.module.css'
+
+const DISPATCH_MOMENTS: readonly MomentId[] = ['M04', 'M09', 'M14', 'M20']
+const RECEIVE_MOMENTS: readonly MomentId[] = ['M08', 'M13', 'M19', 'M24', 'M30']
+const FINALISE_MOMENTS: readonly MomentId[] = ['M31', 'M32']
+
+const OFFICER_ORCHESTRATION_LABEL: Partial<Record<MomentId, string>> = {
+  M03: 'Reviewing intake',
+  M04: 'Preparing complaint analysis',
+  M08: 'Reviewing complaint analysis',
+  M09: 'Preparing policy validation',
+  M13: 'Reviewing policy outcome',
+  M14: 'Preparing operational workflow',
+  M19: 'Reviewing workflow package',
+  M20: 'Preparing financial recommendation',
+  M24: 'Reviewing compensation recommendation',
+  M25: 'Preparing enterprise approval',
+  M29: 'Reviewing enterprise approval',
+  M30: 'Preparing compensation disbursement',
+  M31: 'Reviewing disbursement result',
+  M32: 'Preparing final customer response',
+}
+
+function derivePhase(
+  viewModel: RuntimeViewModel,
+): AgenticCaseOfficerPhase {
+  const momentId = viewModel.currentMoment?.id
+  if (momentId === undefined) return 'idle'
+  if (momentId === 'M03') return 'acknowledging'
+  if (DISPATCH_MOMENTS.includes(momentId)) return 'dispatching'
+  if (RECEIVE_MOMENTS.includes(momentId)) return 'receiving'
+  if (FINALISE_MOMENTS.includes(momentId)) return 'finalising'
+  if (viewModel.activeSpecialistAgentId !== null) return 'monitoring'
+  return 'idle'
+}
+
+function deriveOrchestrationLabel(
+  viewModel: RuntimeViewModel,
+): string | null {
+  const momentId = viewModel.currentMoment?.id
+  if (momentId === undefined) return null
+  return OFFICER_ORCHESTRATION_LABEL[momentId] ?? null
+}
 
 export function AgenticFlowPanel({
   state,
@@ -25,19 +63,17 @@ export function AgenticFlowPanel({
   readonly state: RuntimeState
   readonly viewModel: RuntimeViewModel
 }) {
-  const isFlowFocus = viewModel.focusTarget?.startsWith('agent-') ?? false
+  const isFlowFocus =
+    viewModel.focusTarget !== null &&
+    (viewModel.focusTarget === 'officer' ||
+      viewModel.focusTarget.startsWith('agent-'))
   const dispatchingAgentIds = selectDispatchingAgentIds(viewModel)
-  const investigationWaveAgentIds = selectInvestigationWaveAgentIds(state)
-  const investigationWaveActive = investigationWaveAgentIds.size > 0
-  const customerAgentCompleted = viewModel.agentLifecycle.some(
-    (agent) =>
-      agent.agentId === 'agent-customer-complaint' &&
-      agent.status === 'completed',
-  )
   const intakeCompletionHold =
-    viewModel.currentStage === 'Intake' && customerAgentCompleted
-  const investigationMonitoring =
-    selectCommanderInvestigationMonitoring(viewModel)
+    viewModel.currentStage === 'Intake' &&
+    (viewModel.currentMoment?.id === 'M03')
+  const officerPhase = derivePhase(viewModel)
+  const officerOrchestrationLabel = deriveOrchestrationLabel(viewModel)
+  const officerActive = viewModel.officerMode === 'active'
   const stackRef = useRef<HTMLDivElement | null>(null)
   const railRef = useRef<HTMLDivElement | null>(null)
   const systemConnectorsRef = useRef<HTMLDivElement | null>(null)
@@ -144,15 +180,10 @@ export function AgenticFlowPanel({
           viewModel={viewModel}
           intakeCompleted={intakeCompletionHold}
         />
-        <CaseCommander
-          orchestrationActive={viewModel.earlyStory.showAiTyping}
-          handoffReady={intakeCompletionHold}
-          dispatchingWave={investigationWaveActive}
-          investigationMonitoring={investigationMonitoring}
-          conflictActive={viewModel.currentStage === 'Conflict'}
-          commandActive={
-            viewModel.currentStage !== null && viewModel.finalOutcome === null
-          }
+        <AgenticCaseOfficer
+          commandActive={officerActive}
+          phase={officerPhase}
+          orchestrationLabel={officerOrchestrationLabel}
         />
         <div className={styles.agentStack} ref={stackRef}>
           <div
@@ -165,14 +196,10 @@ export function AgenticFlowPanel({
               const isDispatching =
                 agent.status !== 'working' &&
                 dispatchingAgentIds.has(agent.agentId)
-              const isInvestigationWave = investigationWaveAgentIds.has(
-                agent.agentId,
-              )
               return (
                 <span
                   data-state={agent.status}
                   data-dispatching={isDispatching ? 'true' : undefined}
-                  data-wave={isInvestigationWave ? 'investigation' : undefined}
                   data-agent-id={agent.agentId}
                   key={agent.agentId}
                 />
@@ -197,9 +224,7 @@ export function AgenticFlowPanel({
             workflowIntroduced={viewModel.earlyStory.workflowIntroduced}
           />
         </div>
-        {viewModel.transition === null ? (
-          <ConflictStatus state={state} />
-        ) : (
+        {viewModel.transition === null ? null : (
           <TransitionStatus viewModel={viewModel} />
         )}
         <ActivityTraceTable viewModel={viewModel} />

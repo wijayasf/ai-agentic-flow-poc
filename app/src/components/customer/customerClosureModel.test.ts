@@ -6,7 +6,17 @@ import {
   transitionRuntimeState,
 } from '../../domain/runtime'
 import type { RuntimeState } from '../../domain/runtime'
-import { selectCustomerClosure } from './customerClosureModel'
+import { runtimeFixtures } from '../../domain/runtime-fixtures/loadRuntimeFixtures'
+import {
+  CUSTOMER_CLOSURE_PROHIBITED_PHRASES,
+  selectCustomerClosure,
+} from './customerClosureModel'
+
+function findMomentEnd(id: string): number {
+  const m = runtimeFixtures.timeline.moments.find((moment) => moment.id === id)
+  if (!m) throw new Error(`moment ${id} not found`)
+  return m.startSecond + m.durationSeconds
+}
 
 function stateAt(seconds: number): RuntimeState {
   const started = transitionRuntimeState(createInitialRuntimeState('auto'), {
@@ -20,33 +30,32 @@ function closureAt(seconds: number) {
   return selectCustomerClosure(selectRuntimeViewModel(s))
 }
 
+// Auto mode reaches waiting_approval only after M25 timer expires.
+const APPROVAL_GATE_SECOND = findMomentEnd('M25') + 1
+
 describe('selectCustomerClosure', () => {
   it('returns null while the runtime is idle', () => {
     const idle = createInitialRuntimeState()
     expect(selectCustomerClosure(selectRuntimeViewModel(idle))).toBeNull()
   })
 
-  it('returns null throughout the internal work (Intake, Investigation, Conflict, Approval)', () => {
-    for (const t of [30, 92, 152, 212, 240, 270, 300, 330, 390]) {
+  it('returns null throughout the internal work (intake, investigation, workflow)', () => {
+    // Sample points across the compressed timeline before approval.
+    for (const t of [1, 5, 15, 30, 60, 100, 200, 300, 400]) {
       expect(closureAt(t)).toBeNull()
     }
   })
 
   it('returns null when the reviewer rejects (terminal outcome escalated)', () => {
-    const gate = stateAt(390)
+    const gate = stateAt(APPROVAL_GATE_SECOND)
     const rejected = transitionRuntimeState(gate, { type: 'REJECT' })
     expect(rejected.terminalOutcome).toBe('escalated')
     expect(selectCustomerClosure(selectRuntimeViewModel(rejected))).toBeNull()
   })
 
   it('returns null when the runtime is approved but final outcome is not yet reached', () => {
-    // Right after APPROVE, terminalOutcome may still be 'unresolved' while
-    // the runtime advances through post-approval moments.
-    const gate = stateAt(390)
+    const gate = stateAt(APPROVAL_GATE_SECOND)
     const approved = transitionRuntimeState(gate, { type: 'APPROVE' })
-    // Depending on how the runtime is modeled, finalOutcome may already be
-    // populated or still null. Guard: closure only shows when finalOutcome
-    // exists with type 'approved'.
     const vm = selectRuntimeViewModel(approved)
     const closure = selectCustomerClosure(vm)
     if (vm.finalOutcome?.type === 'approved') {
@@ -69,42 +78,51 @@ describe('selectCustomerClosure', () => {
     expect(closure?.timestampDisplay).toBe('10:00 AM')
   })
 
-  it('publishes exactly five customer-facing lines', () => {
+  it('publishes exactly five customer-facing lines (Bahasa Indonesia)', () => {
     const finalState = simulateAutoRun()
     const closure = selectCustomerClosure(selectRuntimeViewModel(finalState))
     expect(closure?.messageLines).toHaveLength(5)
-    expect(closure?.messageLines[0]).toBe('Thank you for your patience, Rina.')
-    expect(closure?.messageLines[1]).toMatch(/your case has been resolved/i)
-    expect(closure?.messageLines[2]).toMatch(/inspection has been scheduled/i)
-    expect(closure?.messageLines[3]).toMatch(
-      /Compensation of Rp31,000,000 has been approved and processed/i,
+    expect(closure?.messageLines[0]).toBe('Terima kasih, Bu Rina.')
+    expect(closure?.messageLines[1]).toMatch(/keluhan.*bukti/i)
+    expect(closure?.messageLines[2]).toMatch(
+      /kompensasi sebesar Rp31\.000\.000 telah memperoleh persetujuan/i,
     )
-    expect(closure?.messageLines[4]).toMatch(/keep you informed/i)
+    expect(closure?.messageLines[3]).toMatch(/pencairan kompensasi telah dimulai/i)
+    expect(closure?.messageLines[4]).toMatch(/pembaruan berikutnya/i)
   })
 
   it('exposes the approved compensation amount only in the final approved closure', () => {
     const finalState = simulateAutoRun()
     const closure = selectCustomerClosure(selectRuntimeViewModel(finalState))
     const body = (closure?.messageLines ?? []).join(' ')
-    expect(body).toMatch(/Rp31,000,000/)
-    // No amount at any pre-terminal stage.
-    for (const t of [30, 92, 152, 212, 240, 270, 300, 330, 390]) {
+    expect(body).toMatch(/Rp31\.000\.000/)
+    // No closure at any pre-terminal stage.
+    for (const t of [1, 5, 15, 30, 60, 100, 200, 300, 400]) {
       expect(closureAt(t)).toBeNull()
     }
     // Rejected outcome must not expose approved compensation wording.
-    const gate = stateAt(390)
+    const gate = stateAt(APPROVAL_GATE_SECOND)
     const rejected = transitionRuntimeState(gate, { type: 'REJECT' })
     const rejectedClosure = selectCustomerClosure(selectRuntimeViewModel(rejected))
     expect(rejectedClosure).toBeNull()
   })
 
-  it('never leaks AI / Recommendation / Investigation / Conflict / Policy / Enterprise-system wording in the message body', () => {
+  it('never uses any prohibited phrase (Payment Completed / Funds Transferred / Funds Received)', () => {
+    const finalState = simulateAutoRun()
+    const closure = selectCustomerClosure(selectRuntimeViewModel(finalState))
+    const body = (closure?.messageLines ?? []).join(' ')
+    for (const phrase of CUSTOMER_CLOSURE_PROHIBITED_PHRASES) {
+      expect(body.toLowerCase()).not.toContain(phrase.toLowerCase())
+    }
+  })
+
+  it('never leaks internal specialist / recommendation / investigation wording in the message body', () => {
     const finalState = simulateAutoRun()
     const closure = selectCustomerClosure(selectRuntimeViewModel(finalState))
     const body = (closure?.messageLines ?? []).join(' ')
     // Whole-word / phrase matches. Sender persona name is exempt (separate field).
     const forbidden =
-      /\bAI\b|recommendation|investigation|conflict|policy|internal approval|enterprise system|SAP\b|CRM\b|reasoning|correlat|specialist agent/i
+      /\bAI\b|recommendation|investigation|conflict|specialist agent|SAP\b|CRM\b|correlat/i
     expect(body).not.toMatch(forbidden)
   })
 })

@@ -28,7 +28,7 @@
 
 .strip[data-tone='awaiting'] {
   border-color: #f3bd5d;
-  background: #fff8ec;
+  background: var(--color-warning-strong-tint);
   color: #9a4d00;
 }
 

@@ -10,8 +10,8 @@
 .card {
   position: relative;
   display: grid;
-  height: 142px;
-  grid-template-rows: 48px 41px 20px 25px;
+  height: 158px;
+  grid-template-rows: 52px 40px 20px 38px;
   justify-items: center;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -21,7 +21,7 @@
 }
 
 .card > span:first-child {
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .card > strong {
@@ -73,43 +73,9 @@
   box-shadow: var(--shadow-card-active);
 }
 
-.card[data-state='working'][data-agent-id='agent-policy'],
-.card[data-state='working'][data-agent-id='agent-workflow'],
-.card[data-state='working'][data-agent-id='agent-finance'] {
-  animation: agentActivate 500ms ease-out both;
-}
-
-.card[data-state='working'][data-agent-id='agent-workflow'] {
-  animation-delay: 180ms;
-}
-
-.card[data-state='working'][data-agent-id='agent-finance'] {
-  animation-delay: 360ms;
-}
-
-@keyframes agentActivate {
-  0% {
-    box-shadow: 0 0 0 0 rgba(21, 94, 239, 0);
-    border-color: #e5e9ef;
-  }
-  55% {
-    box-shadow: 0 0 0 4px rgba(21, 94, 239, 0.14);
-    border-color: #4c86eb;
-  }
-  100% {
-    box-shadow: var(--shadow-card-active);
-    border-color: #9ec5f8;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card[data-state='working'][data-agent-id='agent-policy'],
-  .card[data-state='working'][data-agent-id='agent-workflow'],
-  .card[data-state='working'][data-agent-id='agent-finance'] {
-    animation: none;
-    animation-delay: 0ms;
-  }
-}
+/* Working-state entry — restrained enterprise indicator per Point F1.
+ * No card-wide glow, no vertical bars crossing the text, no width oscillation.
+ * The subtle activation is a static blue border + shadow set on the card. */
 
 .card[data-state='blocked'] {
   border-color: var(--color-danger);
@@ -119,6 +85,12 @@
 .card[data-state='needs_review'] {
   border-color: var(--color-warning);
   box-shadow: 0 0 0 1px var(--color-warning-tint);
+}
+
+.card[data-state='awaiting_approval'] {
+  border-color: var(--color-warning-strong);
+  background: var(--color-warning-strong-tint);
+  box-shadow: 0 0 0 1px var(--color-warning-strong-shadow);
 }
 
 .card[data-state='completed'] {
@@ -149,42 +121,37 @@
   height: 100%;
   background: var(--color-primary-blue);
   transition:
-    width 480ms ease-out,
+    width 320ms ease-out,
     background-color 240ms ease;
 }
 
 .card[data-progress='active'] .progressFill {
-  width: 55%;
+  width: 60%;
   background: var(--color-primary-blue);
-  animation: agentProgressFlow 1.6s ease-in-out infinite alternate;
 }
 
 .card[data-progress='complete'] .progressFill {
   width: 100%;
   background: var(--color-success);
-  animation: none;
-}
-
-@keyframes agentProgressFlow {
-  from {
-    width: 45%;
-  }
-  to {
-    width: 78%;
-  }
 }
 
 .activitySubtitle {
-  overflow: hidden;
-  padding: 0 8px;
+  display: flex;
+  align-self: start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 8px 4px;
   color: #344054;
   font-size: 10px;
   font-style: normal;
   font-weight: 600;
-  line-height: 12px;
+  line-height: 13px;
   text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .card[data-state='working'] .activitySubtitle {
@@ -195,10 +162,17 @@
   color: var(--color-success);
 }
 
+.card[data-state='needs_review'] .activitySubtitle {
+  color: var(--color-warning);
+}
+
+/* Agent cards intentionally have no working-state animation per stakeholder
+ * F1.1 decision: status is communicated by lifecycle colour + short text only.
+ * No dot pulse, no progress oscillation, no card glow. */
+
 @media (prefers-reduced-motion: reduce) {
   .progressFill,
   .card[data-progress='active'] .progressFill {
     transition: none;
-    animation: none;
   }
 }

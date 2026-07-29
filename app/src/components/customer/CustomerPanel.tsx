@@ -56,10 +56,15 @@ export function CustomerPanel({
     earlyStory.visibleAttachmentCount,
   )
   const showOfficerAcknowledgement = earlyStory.showAiAcknowledgement
+  // Chip eligibility: High Priority + Daily Update Promise + verified
+  // check-mark reveal after the Complaint Agent has finished its complete
+  // complaint-and-attachment analysis (Milestone B). Milestone B corresponds
+  // to the Complaint Analysis Package being ready — lifecycle status
+  // 'needs_review' at M07, before the package returns to the Officer at M08.
   const intakeCompleted = viewModel.agentLifecycle.some(
     (agent) =>
       agent.agentId === 'agent-customer-complaint' &&
-      agent.status === 'completed',
+      (agent.status === 'needs_review' || agent.status === 'completed'),
   )
   const priorityChip = PRIORITY_CHIP[customer.priority]
 
@@ -160,10 +165,10 @@ export function CustomerPanel({
                 className={styles.officerMessage}
                 data-reveal-block="message"
               >
-                Thank you, Rina. I&rsquo;ve received your complaint and
-                attachments. I&rsquo;m reviewing with the right systems and
-                experts. I&rsquo;ll keep you updated daily until this is
-                resolved.
+                Terima kasih, Bu Rina. Keluhan dan seluruh lampiran sudah kami
+                terima. Saya sedang mengarahkan pemeriksaan ke sistem dan agen
+                terkait. Kami akan memberikan pembaruan setiap hari sampai
+                kasus ini selesai.
                 <span
                   className={styles.officerCursor}
                   aria-hidden="true"

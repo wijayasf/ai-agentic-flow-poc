@@ -10,7 +10,6 @@ export interface RuntimeControllerActions {
   readonly restart: () => void
   readonly approve: () => void
   readonly reject: () => void
-  readonly injectFailure: () => void
 }
 
 export interface RuntimeController {

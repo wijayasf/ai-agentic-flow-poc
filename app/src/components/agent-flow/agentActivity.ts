@@ -2,71 +2,73 @@ import type { AgentId } from '../../domain/runtime-fixtures/types'
 import type { AgentLifecycleStatus, RuntimeViewModel } from '../../domain/runtime'
 import type { SystemPresentationState } from './systemPresentationState'
 
-/**
- * Presentation-only mapping helpers for US-10A "Live Investigation Activity".
- *
- * All values are derived from existing runtime state (agent lifecycle + current
- * stage). No wall-clock timers, no new runtime fields, no fixture changes.
- */
-
-const INVESTIGATION_WORKING_ACTIVITY: Partial<Record<AgentId, string>> = {
-  'agent-policy': 'Reading Policy Repository…',
-  'agent-workflow': 'Checking SAP CX case history…',
-  'agent-finance': 'Preparing compensation context…',
+// F1.1 locked short copy — max ~32 chars, no ellipsis, no "Package" wording.
+// Longer explanations live in the notification strip / rationale panel.
+const WORKING_ACTIVITY: Partial<Record<AgentId, string>> = {
+  'agent-customer-complaint': 'Analysing complaint',
+  'agent-policy': 'Checking policy',
+  'agent-workflow': 'Preparing workflow',
+  'agent-finance': 'Calculating compensation',
 }
 
-const INVESTIGATION_COMPLETION_CUE: Partial<Record<AgentId, string>> = {
-  'agent-policy': 'Policy review complete',
-  'agent-workflow': 'Workflow review complete',
-  'agent-finance': 'Finance review complete',
+const COMPLETION_CUE: Partial<Record<AgentId, string>> = {
+  'agent-customer-complaint': 'Complaint analysis ready',
+  'agent-policy': 'Policy evidence ready',
+  'agent-workflow': 'Workflow package ready',
+  'agent-finance': 'Financial recommendation ready',
 }
 
-/**
- * Returns a role-specific working / completion subtitle for a specialist
- * agent, or `null` to indicate the caller should fall back to the static
- * agent skill label. Only Policy / Workflow / Finance agents produce
- * Investigation activity subtitles — the Customer Complaint Agent keeps
- * its existing Intake-stage skill text (US-06/US-08 govern that beat).
- */
+const NEEDS_REVIEW_CUE: Partial<Record<AgentId, string>> = {
+  'agent-customer-complaint': 'Analysis ready',
+  'agent-policy': 'Policy ready',
+  'agent-workflow': 'Workflow ready',
+  'agent-finance': 'Recommendation ready',
+}
+
+const AWAITING_APPROVAL_CUE: Partial<Record<AgentId, string>> = {
+  'agent-workflow': 'Approval in progress',
+  'agent-finance': 'Awaiting approval',
+}
+
 export function selectAgentActivitySubtitle(
   agentId: AgentId,
   status: AgentLifecycleStatus,
 ): string | null {
-  if (status === 'working') return INVESTIGATION_WORKING_ACTIVITY[agentId] ?? null
-  if (status === 'completed') return INVESTIGATION_COMPLETION_CUE[agentId] ?? null
+  if (status === 'working') return WORKING_ACTIVITY[agentId] ?? null
+  if (status === 'needs_review') return NEEDS_REVIEW_CUE[agentId] ?? null
+  if (status === 'awaiting_approval') {
+    return AWAITING_APPROVAL_CUE[agentId] ?? null
+  }
+  if (status === 'completed') return COMPLETION_CUE[agentId] ?? null
   return null
 }
 
 /**
- * Returns `true` while the Case Commander should present its
- * "Monitoring Investigation" steady state — throughout the Investigation
- * stage (M04–M08). Reuses existing viewModel.currentStage.
+ * Returns whether the Officer should present its "monitoring" steady state.
+ * True while any specialist is actively working.
  */
 export function selectCommanderInvestigationMonitoring(
   viewModel: RuntimeViewModel,
 ): boolean {
-  return viewModel.currentStage === 'Investigation'
+  return viewModel.activeSpecialistAgentId !== null
 }
 
-/**
- * Deterministic three-state progress treatment for an agent card, driven
- * purely by lifecycle status. No timers, no percentages.
- */
 export type AgentProgressState = 'inactive' | 'active' | 'complete'
 
 export function selectAgentProgressState(
   status: AgentLifecycleStatus,
 ): AgentProgressState {
-  if (status === 'working' || status === 'needs_review') return 'active'
+  if (
+    status === 'working' ||
+    status === 'needs_review' ||
+    status === 'awaiting_approval'
+  ) {
+    return 'active'
+  }
   if (status === 'completed') return 'complete'
   return 'inactive'
 }
 
-/**
- * Positional mapping from a system card to the paired specialist agent —
- * matches the existing config.ts ordering used by AgentGrid and SystemGrid.
- * Presentation-only; the runtime does not model this pairing directly.
- */
 export const SYSTEM_PAIRED_AGENT: Record<string, AgentId> = {
   'system-crm': 'agent-customer-complaint',
   'system-policy-repository': 'agent-policy',
@@ -74,11 +76,6 @@ export const SYSTEM_PAIRED_AGENT: Record<string, AgentId> = {
   'system-sap-s4hana': 'agent-finance',
 }
 
-/**
- * Returns the paired agent's current lifecycle status for a given system —
- * used to overlay "working" vs "completed" treatment on the system card
- * without changing runtime semantics.
- */
 export function selectPairedAgentStatus(
   systemId: string,
   viewModel: RuntimeViewModel,
@@ -91,12 +88,6 @@ export function selectPairedAgentStatus(
   )
 }
 
-/**
- * Whether a system card should be visually treated as "settled" — the paired
- * agent has completed its work and the base runtime state is `engaged`.
- * Presentation-only combinator; `systemPresentationState` remains the
- * source of truth for the base state.
- */
 export function isSystemSettled(
   baseState: SystemPresentationState,
   pairedAgentStatus: AgentLifecycleStatus | null,

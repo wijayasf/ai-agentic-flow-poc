@@ -77,18 +77,16 @@ describe('CustomerClosure', () => {
     expect(timestamp.getAttribute('dateTime')).toBe('10:00:00')
   })
 
-  it('renders exactly the five customer-facing closure lines', () => {
+  it('renders exactly the five customer-facing closure lines (Bahasa Indonesia)', () => {
     renderApproved()
     const body = screen.getByTestId('customer-closure-body')
-    expect(body).toHaveTextContent('Thank you for your patience, Rina.')
-    expect(body).toHaveTextContent(/Your case has been resolved/i)
-    expect(body).toHaveTextContent(/inspection has been scheduled within 24 hours/i)
+    expect(body).toHaveTextContent('Terima kasih, Bu Rina.')
+    expect(body).toHaveTextContent(/keluhan.*bukti/i)
     expect(body).toHaveTextContent(
-      /Compensation of Rp31,000,000 has been approved and processed/i,
+      /kompensasi sebesar Rp31\.000\.000 telah memperoleh persetujuan/i,
     )
-    expect(body).toHaveTextContent(
-      /keep you informed until all follow-up actions are completed/i,
-    )
+    expect(body).toHaveTextContent(/pencairan kompensasi telah dimulai/i)
+    expect(body).toHaveTextContent(/pembaruan berikutnya/i)
   })
 
   it('displays the delivered chip and delivery status label', () => {
@@ -101,11 +99,11 @@ describe('CustomerClosure', () => {
     expect(within(card).getByText('Delivered')).toBeInTheDocument()
   })
 
-  it('never leaks internal / AI / recommendation / policy wording in the message body', () => {
+  it('never leaks internal / AI / recommendation / specialist wording in the message body', () => {
     renderApproved()
     const body = screen.getByTestId('customer-closure-body')
     const forbidden =
-      /\bAI\b|recommendation|investigation|conflict|policy|internal approval|enterprise system|SAP\b|CRM\b|reasoning|correlat|specialist agent/i
+      /\bAI\b|recommendation|investigation|conflict|enterprise system|SAP\b|CRM\b|reasoning|correlat|specialist agent/i
     expect(body.textContent ?? '').not.toMatch(forbidden)
   })
 })

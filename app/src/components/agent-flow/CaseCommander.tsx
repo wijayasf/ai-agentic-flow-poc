@@ -1,66 +1,68 @@
 import styles from './CaseCommander.module.css'
 
-const DEFAULT_SUBTITLE = 'Orchestrating agents and resolving conflicts'
-const ORCHESTRATION_SUBTITLE = 'Dispatching task…'
-const MONITORING_SUBTITLE = 'Monitoring Investigation'
-const COMMANDER_GLYPH_SRC = '/assets/icons/user-star.png'
+const DEFAULT_SUBTITLE = 'Coordinating specialist agents'
+const ORCHESTRATION_SUBTITLE = 'Dispatching…'
+const RECEIVING_SUBTITLE = 'Receiving specialist result'
+const FINALISING_SUBTITLE = 'Preparing final customer response'
+const OFFICER_GLYPH_SRC = '/assets/icons/user-star.png'
 
-export function CaseCommander({
-  orchestrationActive = false,
-  handoffReady = false,
-  dispatchingWave = false,
-  investigationMonitoring = false,
-  conflictActive = false,
+export type AgenticCaseOfficerPhase =
+  | 'idle'
+  | 'acknowledging'
+  | 'dispatching'
+  | 'monitoring'
+  | 'receiving'
+  | 'finalising'
+
+function deriveSubtitle(
+  phase: AgenticCaseOfficerPhase,
+  orchestrationLabel: string | null,
+): string {
+  if (phase === 'dispatching' || phase === 'acknowledging') {
+    return orchestrationLabel ?? ORCHESTRATION_SUBTITLE
+  }
+  if (phase === 'receiving') {
+    return orchestrationLabel ?? RECEIVING_SUBTITLE
+  }
+  if (phase === 'finalising') {
+    return orchestrationLabel ?? FINALISING_SUBTITLE
+  }
+  return DEFAULT_SUBTITLE
+}
+
+export function AgenticCaseOfficer({
   commandActive = false,
+  phase = 'idle',
+  orchestrationLabel = null,
 }: {
-  readonly orchestrationActive?: boolean
-  readonly handoffReady?: boolean
-  readonly dispatchingWave?: boolean
-  readonly investigationMonitoring?: boolean
-  readonly conflictActive?: boolean
   readonly commandActive?: boolean
+  readonly phase?: AgenticCaseOfficerPhase
+  readonly orchestrationLabel?: string | null
 } = {}) {
-  const phase = orchestrationActive
-    ? 'dispatching'
-    : dispatchingWave
-      ? 'dispatching-wave'
-      : investigationMonitoring
-        ? 'monitoring'
-        : handoffReady
-          ? 'ready'
-          : undefined
-  const subtitle = orchestrationActive
-    ? ORCHESTRATION_SUBTITLE
-    : investigationMonitoring
-      ? MONITORING_SUBTITLE
-      : DEFAULT_SUBTITLE
+  const subtitle = deriveSubtitle(phase, orchestrationLabel)
   return (
     <article
       className={styles.card}
-      aria-label="Case Commander"
+      aria-label="AI Agentic Case Officer"
       data-command-mode={commandActive ? 'active' : 'standby'}
-      data-orchestrating={
-        commandActive && orchestrationActive ? 'true' : undefined
-      }
       data-phase={commandActive ? phase : undefined}
-      data-attention={
-        commandActive && conflictActive ? 'conflict' : undefined
-      }
     >
       <span className={styles.glyph} aria-hidden="true">
         <img
           className={styles.glyphImage}
-          src={COMMANDER_GLYPH_SRC}
+          src={OFFICER_GLYPH_SRC}
           alt=""
           loading="eager"
           decoding="async"
-          data-testid="case-commander-glyph"
+          data-testid="agentic-case-officer-glyph"
         />
       </span>
       <div>
-        <strong>Case Commander</strong>
+        <strong>AI Agentic Case Officer</strong>
         <span aria-live="polite">{subtitle}</span>
       </div>
     </article>
   )
 }
+
+export const CaseCommander = AgenticCaseOfficer

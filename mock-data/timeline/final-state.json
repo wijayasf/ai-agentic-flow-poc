@@ -1,7 +1,7 @@
 {
   "mode": "presenter",
   "playbackStatus": "completed",
-  "currentMomentId": "M21",
+  "currentMomentId": "M33",
   "completedMomentIds": [
     "M01",
     "M02",
@@ -23,29 +23,48 @@
     "M18",
     "M19",
     "M20",
-    "M21"
+    "M21",
+    "M22",
+    "M23",
+    "M24",
+    "M25",
+    "M26",
+    "M27",
+    "M28",
+    "M29",
+    "M30",
+    "M31",
+    "M32",
+    "M33"
   ],
   "elapsedSeconds": 600,
   "remainingSeconds": 0,
   "visibleEventIds": [
     "evt-1",
     "evt-2",
-    "evt-6",
     "evt-3",
-    "evt-7",
     "evt-4",
-    "evt-8",
     "evt-5",
+    "evt-6",
+    "evt-7",
+    "evt-8",
     "evt-9",
     "evt-10",
     "evt-11",
-    "evt-12"
+    "evt-12",
+    "evt-13",
+    "evt-14",
+    "evt-15",
+    "evt-16",
+    "evt-17",
+    "evt-18",
+    "evt-19"
   ],
   "availableArtifactIds": [
-    "artifact-summary",
-    "artifact-conflict",
-    "artifact-approval",
-    "artifact-prevention"
+    "artifact-complaint",
+    "artifact-policy",
+    "artifact-workflow",
+    "artifact-finance"
   ],
   "activeAgentIds": [
     "agent-customer-complaint",
@@ -59,10 +78,11 @@
     "system-sap-cx",
     "system-sap-s4hana"
   ],
-  "conflictStatus": "resolved",
+  "activeSpecialistAgentId": null,
+  "officerMode": "standby",
+  "workflowStep": 4,
+  "approversCompleted": 4,
+  "customerResponseSent": true,
   "approvalStatus": "approved",
-  "failureStatus": "recovered",
-  "recoveryStatus": "completed",
-  "recommendationVisible": true,
   "timerActive": false
 }

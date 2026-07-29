@@ -103,6 +103,7 @@ export const lifecycleLabels: Readonly<Record<AgentLifecycleStatus, string>> = {
   waiting: 'Waiting',
   working: 'Working',
   needs_review: 'Needs Review',
+  awaiting_approval: 'Awaiting Approval',
   completed: 'Completed',
   blocked: 'Blocked',
 }

@@ -1,6 +1,10 @@
 {
-  "id": "case-sap-cx-001",
+  "id": "case-workflow-001",
   "complaintId": "complaint-leakage-001",
-  "status": "Completed",
-  "conflict": "Customer evidence indicates unresolved leakage"
+  "steps": [
+    { "index": 1, "name": "Maintenance Work Order" },
+    { "index": 2, "name": "Site Inspection Request" },
+    { "index": 3, "name": "Vendor Assignment" },
+    { "index": 4, "name": "Customer Update Schedule" }
+  ]
 }

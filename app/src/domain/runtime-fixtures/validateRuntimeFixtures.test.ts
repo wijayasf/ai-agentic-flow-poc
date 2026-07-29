@@ -40,11 +40,12 @@ describe('authoritative runtime state fixtures', () => {
       availableArtifactIds: [],
       activeAgentIds: [],
       activeSystemIds: [],
-      conflictStatus: 'neutral',
+      activeSpecialistAgentId: null,
+      officerMode: 'standby',
+      workflowStep: 0,
+      approversCompleted: 0,
+      customerResponseSent: false,
       approvalStatus: 'not_required',
-      failureStatus: 'not_injected',
-      recoveryStatus: 'not_started',
-      recommendationVisible: false,
       timerActive: false,
     })
   })
@@ -53,7 +54,7 @@ describe('authoritative runtime state fixtures', () => {
     expect(runtimeFixtures.finalState).toEqual({
       mode: 'presenter',
       playbackStatus: 'completed',
-      currentMomentId: 'M21',
+      currentMomentId: 'M33',
       completedMomentIds: MOMENT_IDS,
       elapsedSeconds: 600,
       remainingSeconds: 0,
@@ -61,15 +62,16 @@ describe('authoritative runtime state fixtures', () => {
       availableArtifactIds: ARTIFACT_IDS,
       activeAgentIds: AGENT_IDS,
       activeSystemIds: SYSTEM_IDS,
-      conflictStatus: 'resolved',
+      activeSpecialistAgentId: null,
+      officerMode: 'standby',
+      workflowStep: 4,
+      approversCompleted: 4,
+      customerResponseSent: true,
       approvalStatus: 'approved',
-      failureStatus: 'recovered',
-      recoveryStatus: 'completed',
-      recommendationVisible: true,
       timerActive: false,
     })
-    expect(runtimeFixtures.finalState.completedMomentIds).toHaveLength(21)
-    expect(runtimeFixtures.finalState.visibleEventIds).toHaveLength(12)
+    expect(runtimeFixtures.finalState.completedMomentIds).toHaveLength(33)
+    expect(runtimeFixtures.finalState.visibleEventIds).toHaveLength(19)
     expect(runtimeFixtures.finalState.availableArtifactIds).toHaveLength(4)
   })
 

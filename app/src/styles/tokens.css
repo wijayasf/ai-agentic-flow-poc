@@ -16,6 +16,9 @@
   --color-danger: #e24444;
   --color-danger-tint: #fef5f5;
   --color-warning: #d97706;
+  --color-warning-strong: #f59e0b;
+  --color-warning-strong-tint: #fff8ec;
+  --color-warning-strong-shadow: rgba(245, 158, 11, 0.28);
   --color-warning-tint: #fffbeb;
   --color-success: #159947;
   --color-success-tint: #f3fbf5;

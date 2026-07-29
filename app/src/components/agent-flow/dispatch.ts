@@ -1,32 +1,33 @@
 import type { RuntimeState, RuntimeViewModel } from '../../domain/runtime'
-import type { AgentId } from '../../domain/runtime-fixtures/types'
+import type { AgentId, MomentId } from '../../domain/runtime-fixtures/types'
 
 const EMPTY_SET: ReadonlySet<AgentId> = new Set()
 
-const CUSTOMER_COMPLAINT_DISPATCH: ReadonlySet<AgentId> = new Set<AgentId>([
-  'agent-customer-complaint',
-])
-
-const INVESTIGATION_WAVE: ReadonlySet<AgentId> = new Set<AgentId>([
-  'agent-policy',
-  'agent-workflow',
-  'agent-finance',
-])
+const DISPATCH_MOMENT_AGENT: Partial<Record<MomentId, AgentId>> = {
+  M04: 'agent-customer-complaint',
+  M09: 'agent-policy',
+  M14: 'agent-workflow',
+  M20: 'agent-finance',
+}
 
 export function selectDispatchingAgentIds(
   viewModel: RuntimeViewModel,
 ): ReadonlySet<AgentId> {
-  if (viewModel.earlyStory.showAiTyping) {
-    return CUSTOMER_COMPLAINT_DISPATCH
-  }
-  return EMPTY_SET
+  const momentId = viewModel.currentMoment?.id
+  if (momentId === undefined) return EMPTY_SET
+  const agentId = DISPATCH_MOMENT_AGENT[momentId]
+  return agentId === undefined ? EMPTY_SET : new Set<AgentId>([agentId])
 }
 
+/**
+ * The sequential model no longer performs a parallel investigation "wave" —
+ * every dispatch is a single specialist. This helper is kept as a stub for
+ * the layout code which historically decorated the wave; it always returns
+ * an empty set now.
+ */
 export function selectInvestigationWaveAgentIds(
-  state: RuntimeState,
+  _state: RuntimeState,
 ): ReadonlySet<AgentId> {
-  if (state.currentMomentId === 'M04') {
-    return INVESTIGATION_WAVE
-  }
+  void _state
   return EMPTY_SET
 }

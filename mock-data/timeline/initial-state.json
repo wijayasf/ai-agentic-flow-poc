@@ -9,10 +9,11 @@
   "availableArtifactIds": [],
   "activeAgentIds": [],
   "activeSystemIds": [],
-  "conflictStatus": "neutral",
+  "activeSpecialistAgentId": null,
+  "officerMode": "standby",
+  "workflowStep": 0,
+  "approversCompleted": 0,
+  "customerResponseSent": false,
   "approvalStatus": "not_required",
-  "failureStatus": "not_injected",
-  "recoveryStatus": "not_started",
-  "recommendationVisible": false,
   "timerActive": false
 }

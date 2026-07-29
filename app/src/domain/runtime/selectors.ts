@@ -40,14 +40,14 @@ import type {
 } from './types'
 
 const EARLY_STORY_SECONDS = {
-  customerIdentity: 2,
-  customerMessage: 3,
-  leakagePhoto: 4,
-  handoverAgreement: 5,
-  paymentReceipt: 6,
-  aiTyping: 7,
-  aiAcknowledgement: 9,
-  intakeContextEnd: 12,
+  customerIdentity: 1,
+  customerMessage: 1,
+  leakagePhoto: 2,
+  handoverAgreement: 3,
+  paymentReceipt: 4,
+  aiTyping: 5,
+  aiAcknowledgement: 12,
+  intakeContextEnd: 6,
 } as const
 
 export function selectCurrentMoment(
@@ -108,9 +108,14 @@ export function selectVisibleEvents(
 function artifactStatus(
   state: RuntimeState,
   artifactId: ArtifactId,
+  fixtures: RuntimeFixtureBundle,
 ): ArtifactPresentation['status'] {
   if (!state.availableArtifactIds.includes(artifactId)) return 'locked'
-  if (artifactId !== 'artifact-approval') return 'available'
+  const rule = fixtures.timeline.artifactAvailabilityRules.find(
+    (candidate) => candidate.artifactId === artifactId,
+  )
+  const approvalRequired = rule?.approvedAtMomentId !== null && rule !== undefined
+  if (!approvalRequired) return 'available'
   if (state.approvalStatus === 'rejected') return 'locked'
   if (state.approvalStatus === 'approved') return 'approved'
   if (state.approvalStatus === 'pending') return 'pending'
@@ -125,7 +130,7 @@ export function selectArtifacts(
     .sort((left, right) => left.order - right.order)
     .map((artifact) => ({
       ...artifact,
-      status: artifactStatus(state, artifact.id),
+      status: artifactStatus(state, artifact.id, fixtures),
     }))
 }
 
@@ -136,20 +141,16 @@ export function selectContext(
   if (state.playbackStatus === 'waiting_approval') {
     return { type: 'approval', copy: fixtures.timeline.approval.copy }
   }
-  if (state.playbackStatus === 'failed') {
-    return { type: 'failure', copy: fixtures.timeline.failureRecovery.failureCopy }
+  if (state.approvalStatus === 'approved' && state.approversCompleted > 0 && state.approversCompleted < 4) {
+    return {
+      type: 'approving',
+      copy: `Enterprise approval workflow in progress (${state.approversCompleted} of 4)`,
+    }
   }
-  if (state.playbackStatus === 'recovering') {
-    return { type: 'recovery', copy: fixtures.timeline.failureRecovery.recoveryCopy }
+  if (state.customerResponseSent) {
+    return { type: 'resolution', copy: 'Customer response delivered' }
   }
-  if (
-    state.failureStatus === 'recovered' &&
-    state.recoveryStatus === 'completed' &&
-    !state.recommendationVisible
-  ) {
-    return { type: 'recovered', copy: fixtures.timeline.failureRecovery.recoveryCopy }
-  }
-  if (state.recommendationVisible) {
+  if (state.terminalOutcome === 'approved') {
     return { type: 'recommendation', copy: fixtures.timeline.recommendation.copy }
   }
   return { type: 'neutral', copy: null }
@@ -219,8 +220,18 @@ export function selectEarlyStory(
         : elapsed >= EARLY_STORY_SECONDS.leakagePhoto
           ? 1
           : 0
-  const showAiAcknowledgement =
-    !isIdle && elapsed >= EARLY_STORY_SECONDS.aiAcknowledgement
+  // Milestone gating: the acknowledgement bubble may not appear until the
+  // Complaint Agent has delivered at least Milestone A (initial complaint
+  // understanding). Milestone A corresponds to M05 boundary — the moment
+  // "Complaint Agent analyses text" completes. The AI typing indicator
+  // shows during the working window between dispatch (M03 boundary) and
+  // Milestone A completion, representing the AI Resolution Officer
+  // composing the acknowledgement while the specialist is still analysing.
+  const dispatchStarted = state.completedMomentIds.includes('M03')
+  const initialAnalysisComplete = state.completedMomentIds.includes('M05')
+  const showAiAcknowledgement = !isIdle && initialAnalysisComplete
+  const showAiTyping =
+    !isIdle && dispatchStarted && !initialAnalysisComplete
 
   return {
     phase,
@@ -231,12 +242,15 @@ export function selectEarlyStory(
     showCustomerMessage:
       !isIdle && elapsed >= EARLY_STORY_SECONDS.customerMessage,
     visibleAttachmentCount: isIdle ? 0 : visibleAttachmentCount,
-    showAiTyping: phase === 'ai_typing',
+    showAiTyping,
     showAiAcknowledgement,
     showIntakeContext:
       currentStage === 'Intake' &&
       elapsed < EARLY_STORY_SECONDS.intakeContextEnd,
-    workflowIntroduced: showAiAcknowledgement,
+    // Specialist activity appears once the Complaint Agent has been
+    // dispatched (past M03), not after acknowledgement. This lets the
+    // agent card show a live "working" state before the acknowledgement.
+    workflowIntroduced: dispatchStarted,
   }
 }
 
@@ -281,22 +295,20 @@ export function selectNowNext(
       next: 'Management review required',
     }
   }
-  if (state.playbackStatus === 'failed') {
+  if (state.playbackStatus === 'waiting_approval') {
     return {
-      now: 'Contractor rejected task',
-      next: 'Rerouting to alternative contractor',
+      now: 'Awaiting human approval',
+      next: 'Enterprise approval workflow',
     }
   }
-  if (state.playbackStatus === 'recovering') {
+  if (state.approvalStatus === 'approved' && state.approversCompleted > 0) {
     return {
-      now: 'Rerouting repair task',
-      next: 'Complete rerouting',
-    }
-  }
-  if (state.approvalStatus === 'approved') {
-    return {
-      now: 'Finalizing customer resolution',
-      next: 'Complete case',
+      now: state.approversCompleted < 4
+        ? `Enterprise approval ${state.approversCompleted} of 4`
+        : 'Preparing customer response',
+      next: state.customerResponseSent
+        ? 'Close case'
+        : 'Send customer response',
     }
   }
 
@@ -357,12 +369,11 @@ export function selectOutcomePreview(
 ): OutcomePreviewPresentation | null {
   if (
     state.terminalOutcome !== 'unresolved' ||
-    state.approvalStatus === 'approved' ||
     state.approvalStatus === 'rejected'
   ) {
     return null
   }
-  return state.currentMomentId === 'M12' || state.currentMomentId === 'M13'
+  return state.currentMomentId === 'M24' || state.currentMomentId === 'M25'
     ? OUTCOME_PREVIEW
     : null
 }
@@ -389,11 +400,6 @@ export function selectControlAvailability(
       fixtures,
     ),
     canRestart: isRuntimeActionLegal(state, { type: 'RESTART' }, fixtures),
-    canInjectFailure: isRuntimeActionLegal(
-      state,
-      { type: 'INJECT_FAILURE' },
-      fixtures,
-    ),
     canApprove: isRuntimeActionLegal(state, { type: 'APPROVE' }, fixtures),
     canReject: isRuntimeActionLegal(state, { type: 'REJECT' }, fixtures),
     canSelectPresenter: isRuntimeActionLegal(
@@ -437,7 +443,15 @@ export function selectRuntimeViewModel(
     activeAgentCount: agentLifecycle.filter(
       (agent) => agent.status === 'working',
     ).length,
-    conflictStatus: state.conflictStatus,
+    specialistsCompleted: agentLifecycle.filter(
+      (agent) => agent.status === 'completed',
+    ).length,
+    activeSpecialistAgentId: state.activeSpecialistAgentId,
+    officerMode: state.officerMode,
+    workflowStep: state.workflowStep,
+    approversCompleted: state.approversCompleted,
+    customerResponseSent: state.customerResponseSent,
+    approvalStatus: state.approvalStatus,
     context: selectContext(state, fixtures),
     earlyStory,
     agentLifecycle,

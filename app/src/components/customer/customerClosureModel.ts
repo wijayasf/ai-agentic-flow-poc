@@ -34,11 +34,27 @@ const STATUS_LABEL = 'Delivered'
 const CHIP_LABEL = 'Resolution Delivered'
 
 const MESSAGE_LINES: readonly string[] = [
-  'Thank you for your patience, Rina.',
-  'Your case has been resolved.',
-  'An inspection has been scheduled within 24 hours.',
-  'Compensation of Rp31,000,000 has been approved and processed.',
-  'We will continue to keep you informed until all follow-up actions are completed.',
+  'Terima kasih, Bu Rina.',
+  'Keluhan dan bukti yang Anda sampaikan telah selesai kami tinjau.',
+  'Tindak lanjut operasional telah disiapkan, dan kompensasi sebesar Rp31.000.000 telah memperoleh persetujuan.',
+  'Proses pencairan kompensasi telah dimulai.',
+  'Kami akan memberikan pembaruan berikutnya sesuai perkembangan.',
+]
+
+/**
+ * Prohibited claims — the customer message must not assert that funds have
+ * been received, transferred, or paid. Exported so regression tests can
+ * assert this contract independently of the message body.
+ */
+export const CUSTOMER_CLOSURE_PROHIBITED_PHRASES: readonly string[] = [
+  'pembayaran telah selesai',
+  'dana telah ditransfer',
+  'dana telah diterima',
+  'kompensasi telah diterima',
+  'penyelesaian finansial telah selesai',
+  'Payment Completed',
+  'Funds Transferred',
+  'Funds Received',
 ]
 
 /**

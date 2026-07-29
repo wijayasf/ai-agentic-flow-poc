@@ -1,20 +1,27 @@
 {
-  "version": "1.0",
-  "scenarioId": "main-complaint-resolution",
+  "version": "2.0",
+  "scenarioId": "sequential-agentic-case-officer",
   "totalScheduledSeconds": 600,
   "eventRevealOrder": [
     "evt-1",
     "evt-2",
-    "evt-6",
     "evt-3",
-    "evt-7",
     "evt-4",
-    "evt-8",
     "evt-5",
+    "evt-6",
+    "evt-7",
+    "evt-8",
     "evt-9",
     "evt-10",
     "evt-11",
-    "evt-12"
+    "evt-12",
+    "evt-13",
+    "evt-14",
+    "evt-15",
+    "evt-16",
+    "evt-17",
+    "evt-18",
+    "evt-19"
   ],
   "catalog": {
     "agentIds": [
@@ -31,57 +38,88 @@
     ]
   },
   "approval": {
-    "gateMomentId": "M13",
-    "approvedMomentId": "M14",
-    "continuationMomentId": "M14",
-    "copy": "Approve reopening the SAP CX case, urgent inspection, and Rp31,000,000 compensation, or reject and escalate?",
-    "numericAmountAllowed": false
-  },
-  "failureRecovery": {
-    "cueMomentId": "M15",
-    "failureMomentId": "M16",
-    "recoveringMomentId": "M17",
-    "recoveredMomentId": "M18",
-    "failureCode": "CONTRACTOR_REJECTED",
-    "failureCopy": "Contractor rejected the task (CONTRACTOR_REJECTED). Rerouting to alternative contractor.",
-    "recoveryCopy": "Alternative contractor accepted. Task rerouted successfully (TASK_REROUTED)."
+    "gateMomentId": "M25",
+    "approvedMomentId": "M26",
+    "continuationMomentId": "M26",
+    "copy": "Approve the resolution package for Bu Rina and start the enterprise approval workflow, or reject and escalate for review?",
+    "numericAmountAllowed": false,
+    "approvers": [
+      {
+        "index": 1,
+        "name": "Dewi Anggraini",
+        "role": "Customer Service Supervisor",
+        "momentId": "M26"
+      },
+      {
+        "index": 2,
+        "name": "Arif Pratama",
+        "role": "Property Operations Manager",
+        "momentId": "M27"
+      },
+      {
+        "index": 3,
+        "name": "Maya Santoso",
+        "role": "Finance Controller",
+        "momentId": "M28"
+      },
+      {
+        "index": 4,
+        "name": "Rizky Hartono",
+        "role": "Business Unit Director",
+        "momentId": "M29"
+      }
+    ]
   },
   "recommendation": {
-    "availableAtMomentId": "M20",
-    "copy": "11 similar cases detected. Recommend mandatory customer confirmation before SAP CX ticket closure."
+    "availableAtMomentId": "M33",
+    "copy": "11 similar leakage cases identified. Preventive control recommended: mandatory customer confirmation before handover follow-up closure."
   },
   "artifactAvailabilityRules": [
     {
-      "artifactId": "artifact-summary",
-      "availableAtMomentId": "M03",
+      "artifactId": "artifact-complaint",
+      "availableAtMomentId": "M07",
       "approvedAtMomentId": null,
-      "contentVisibleAtMomentId": "M03",
-      "prerequisiteEventIds": ["evt-1", "evt-2"],
-      "prerequisiteStage": "Intake"
+      "contentVisibleAtMomentId": "M07",
+      "prerequisiteEventIds": [
+        "evt-4",
+        "evt-5"
+      ],
+      "prerequisiteStage": "Investigation"
     },
     {
-      "artifactId": "artifact-conflict",
-      "availableAtMomentId": "M09",
+      "artifactId": "artifact-policy",
+      "availableAtMomentId": "M12",
       "approvedAtMomentId": null,
-      "contentVisibleAtMomentId": "M09",
-      "prerequisiteEventIds": ["evt-3", "evt-4"],
-      "prerequisiteStage": "Conflict"
+      "contentVisibleAtMomentId": "M12",
+      "prerequisiteEventIds": [
+        "evt-6",
+        "evt-7"
+      ],
+      "prerequisiteStage": "Investigation"
     },
     {
-      "artifactId": "artifact-approval",
-      "availableAtMomentId": "M13",
-      "approvedAtMomentId": "M14",
-      "contentVisibleAtMomentId": "M13",
-      "prerequisiteEventIds": ["evt-5", "evt-9"],
-      "prerequisiteStage": "Approval"
+      "artifactId": "artifact-workflow",
+      "availableAtMomentId": "M18",
+      "approvedAtMomentId": null,
+      "contentVisibleAtMomentId": "M18",
+      "prerequisiteEventIds": [
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11"
+      ],
+      "prerequisiteStage": "Workflow"
     },
     {
-      "artifactId": "artifact-prevention",
-      "availableAtMomentId": "M19",
-      "approvedAtMomentId": null,
-      "contentVisibleAtMomentId": "M20",
-      "prerequisiteEventIds": ["evt-10", "evt-12"],
-      "prerequisiteStage": "Resolution"
+      "artifactId": "artifact-finance",
+      "availableAtMomentId": "M23",
+      "approvedAtMomentId": "M29",
+      "contentVisibleAtMomentId": "M23",
+      "prerequisiteEventIds": [
+        "evt-12",
+        "evt-13"
+      ],
+      "prerequisiteStage": "Workflow"
     }
   ],
   "moments": [
@@ -89,210 +127,328 @@
       "id": "M01",
       "order": 1,
       "startSecond": 0,
-      "durationSeconds": 30,
+      "durationSeconds": 2,
       "sceneId": "scene-intake",
       "stage": "Intake",
-      "title": "Complaint intake",
-      "description": "Show the customer complaint, evidence, priority, and officer acknowledgement.",
+      "title": "Complaint arriving",
+      "description": "The customer opens the case; complaint text is being received.",
       "entryEffects": [
-        { "type": "show_customer_context" },
-        { "type": "set_active_agents", "agentIds": ["agent-customer-complaint"] },
-        { "type": "set_active_systems", "systemIds": ["system-crm"] }
+        {
+          "type": "show_customer_context"
+        },
+        {
+          "type": "set_active_agents",
+          "agentIds": []
+        },
+        {
+          "type": "set_active_systems",
+          "systemIds": [
+            "system-crm"
+          ]
+        }
       ],
-      "visibleEventIds": [],
+      "visibleEventIds": [
+        "evt-1"
+      ],
       "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint"],
-        "activeSystemIds": ["system-crm"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 0,
+        "toolActivity": 1,
         "artifactsProduced": 0
       }
     },
     {
       "id": "M02",
       "order": 2,
-      "startSecond": 30,
-      "durationSeconds": 30,
+      "startSecond": 2,
+      "durationSeconds": 2,
       "sceneId": "scene-intake",
       "stage": "Intake",
-      "title": "Customer matched",
-      "description": "Reveal the CRM customer match event.",
-      "entryEffects": [{ "type": "reveal_event", "eventId": "evt-1" }],
-      "visibleEventIds": ["evt-1"],
+      "title": "Attachments ingested",
+      "description": "The three supporting attachments are recorded on the case.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-2"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2"
+      ],
       "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint"],
-        "activeSystemIds": ["system-crm"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 1,
+        "toolActivity": 2,
         "artifactsProduced": 0
       }
     },
     {
       "id": "M03",
       "order": 3,
-      "startSecond": 60,
-      "durationSeconds": 30,
+      "startSecond": 4,
+      "durationSeconds": 2,
       "sceneId": "scene-intake",
       "stage": "Intake",
-      "title": "Evidence analyzed",
-      "description": "Reveal confirmed leakage and make the customer summary available.",
+      "title": "Officer acknowledges the customer",
+      "description": "The Agentic Case Officer confirms receipt and promises daily updates.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-2" },
-        { "type": "make_artifact_available", "artifactId": "artifact-summary" }
+        {
+          "type": "reveal_event",
+          "eventId": "evt-3"
+        },
+        {
+          "type": "return_to_officer"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2"],
-      "availableArtifactIds": ["artifact-summary"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3"
+      ],
+      "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "pause", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint"],
-        "activeSystemIds": ["system-crm"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 2,
-        "artifactsProduced": 1
+        "toolActivity": 3,
+        "artifactsProduced": 0
       }
     },
     {
       "id": "M04",
       "order": 4,
-      "startSecond": 90,
-      "durationSeconds": 30,
+      "startSecond": 6,
+      "durationSeconds": 3,
       "sceneId": "scene-investigation",
       "stage": "Investigation",
-      "title": "Investigation begins",
-      "description": "Activate all specialist agents and engage all four systems.",
+      "title": "Officer dispatches Complaint Agent",
+      "description": "The Officer assigns the Customer Complaint Agent to open the investigation.",
       "entryEffects": [
         {
           "type": "set_active_agents",
-          "agentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"]
+          "agentIds": [
+            "agent-customer-complaint"
+          ]
         },
         {
           "type": "set_active_systems",
-          "systemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"]
+          "systemIds": [
+            "system-crm"
+          ]
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": "agent-customer-complaint"
         }
       ],
-      "visibleEventIds": ["evt-1", "evt-2"],
-      "availableArtifactIds": ["artifact-summary"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3"
+      ],
+      "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [
+          "agent-customer-complaint"
+        ],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": "agent-customer-complaint",
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 2,
-        "artifactsProduced": 1
+        "toolActivity": 3,
+        "artifactsProduced": 0
       }
     },
     {
       "id": "M05",
       "order": 5,
-      "startSecond": 120,
-      "durationSeconds": 30,
+      "startSecond": 9,
+      "durationSeconds": 4,
       "sceneId": "scene-investigation",
       "stage": "Investigation",
-      "title": "Policy retrieved",
-      "description": "Apply the Post-Handover Defect Resolution Policy.",
-      "entryEffects": [{ "type": "reveal_event", "eventId": "evt-6" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6"],
-      "availableArtifactIds": ["artifact-summary"],
+      "title": "Complaint Agent analyses text",
+      "description": "The Complaint Agent classifies urgency and extracts the incident summary.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-4"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4"
+      ],
+      "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [
+          "agent-customer-complaint"
+        ],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": "agent-customer-complaint",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 3,
-        "artifactsProduced": 1
+        "toolActivity": 4,
+        "artifactsProduced": 0
       }
     },
     {
       "id": "M06",
       "order": 6,
-      "startSecond": 150,
-      "durationSeconds": 30,
+      "startSecond": 13,
+      "durationSeconds": 3,
       "sceneId": "scene-investigation",
       "stage": "Investigation",
-      "title": "SAP CX checked",
-      "description": "Reveal the completed SAP CX ticket status.",
-      "entryEffects": [{ "type": "reveal_event", "eventId": "evt-3" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3"],
-      "availableArtifactIds": ["artifact-summary"],
+      "title": "Complaint Agent inspects attachments",
+      "description": "Image and document understanding is applied to the three attachments.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-5"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5"
+      ],
+      "availableArtifactIds": [],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [
+          "agent-customer-complaint"
+        ],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": "agent-customer-complaint",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 4,
-        "artifactsProduced": 1
+        "toolActivity": 5,
+        "artifactsProduced": 0
       }
     },
     {
       "id": "M07",
       "order": 7,
-      "startSecond": 180,
-      "durationSeconds": 30,
+      "startSecond": 16,
+      "durationSeconds": 3,
       "sceneId": "scene-investigation",
       "stage": "Investigation",
-      "title": "Finance context prepared",
-      "description": "Declare that the service recovery credit requires approval.",
-      "entryEffects": [{ "type": "reveal_event", "eventId": "evt-7" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7"],
-      "availableArtifactIds": ["artifact-summary"],
+      "title": "Complaint Analysis Package prepared",
+      "description": "Complaint Analysis Package is completed and ready for handoff.",
+      "entryEffects": [
+        {
+          "type": "make_artifact_available",
+          "artifactId": "artifact-complaint"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [
+          "agent-customer-complaint"
+        ],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": "agent-customer-complaint",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
         "toolActivity": 5,
         "artifactsProduced": 1
       }
@@ -300,27 +456,52 @@
     {
       "id": "M08",
       "order": 8,
-      "startSecond": 210,
-      "durationSeconds": 30,
+      "startSecond": 19,
+      "durationSeconds": 3,
       "sceneId": "scene-investigation",
       "stage": "Investigation",
-      "title": "Investigation synchronized",
-      "description": "Hold synchronized investigation outputs before conflict detection.",
-      "entryEffects": [{ "type": "synchronize_investigation" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7"],
-      "availableArtifactIds": ["artifact-summary"],
+      "title": "Result returns to the Officer",
+      "description": "The Officer receives the Complaint Analysis Package.",
+      "entryEffects": [
+        {
+          "type": "return_to_officer"
+        },
+        {
+          "type": "set_active_agents",
+          "agentIds": []
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": null
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "neutral",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
         "toolActivity": 5,
         "artifactsProduced": 1
       }
@@ -328,400 +509,1528 @@
     {
       "id": "M09",
       "order": 9,
-      "startSecond": 240,
-      "durationSeconds": 30,
-      "sceneId": "scene-conflict",
-      "stage": "Conflict",
-      "title": "Conflict detected",
-      "description": "Expose the SAP CX and customer-evidence conflict.",
+      "startSecond": 22,
+      "durationSeconds": 28,
+      "sceneId": "scene-investigation",
+      "stage": "Investigation",
+      "title": "Officer dispatches Policy Agent",
+      "description": "The Officer assigns the Policy Agent to check applicable policy.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-4" },
-        { "type": "set_conflict_status", "value": "active" },
-        { "type": "make_artifact_available", "artifactId": "artifact-conflict" }
+        {
+          "type": "set_active_agents",
+          "agentIds": [
+            "agent-policy"
+          ]
+        },
+        {
+          "type": "set_active_systems",
+          "systemIds": [
+            "system-policy-repository"
+          ]
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": "agent-policy"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
+        "activeAgentIds": [
+          "agent-policy"
+        ],
+        "activeSystemIds": [
+          "system-policy-repository"
+        ],
+        "activeSpecialistAgentId": "agent-policy",
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 6,
-        "artifactsProduced": 2
+        "toolActivity": 5,
+        "artifactsProduced": 1
       }
     },
     {
       "id": "M10",
       "order": 10,
-      "startSecond": 270,
-      "durationSeconds": 30,
-      "sceneId": "scene-conflict",
-      "stage": "Conflict",
-      "title": "Case escalated",
-      "description": "Record Case Commander escalation for remediation.",
-      "entryEffects": [{ "type": "reveal_event", "eventId": "evt-8" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict"],
+      "startSecond": 50,
+      "durationSeconds": 33,
+      "sceneId": "scene-investigation",
+      "stage": "Investigation",
+      "title": "Policy Agent retrieves policy",
+      "description": "The Post-Handover Defect Resolution Policy is retrieved from the repository.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-6"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
+        "activeAgentIds": [
+          "agent-policy"
+        ],
+        "activeSystemIds": [
+          "system-policy-repository"
+        ],
+        "activeSpecialistAgentId": "agent-policy",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 7,
-        "artifactsProduced": 2
+        "toolActivity": 6,
+        "artifactsProduced": 1
       }
     },
     {
       "id": "M11",
       "order": 11,
-      "startSecond": 300,
-      "durationSeconds": 30,
-      "sceneId": "scene-conflict",
-      "stage": "Conflict",
-      "title": "Conflict narration hold",
-      "description": "Hold the conflict view for presenter narration.",
-      "entryEffects": [{ "type": "hold_state" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict"],
+      "startSecond": 83,
+      "durationSeconds": 28,
+      "sceneId": "scene-investigation",
+      "stage": "Investigation",
+      "title": "Policy Agent validates coverage",
+      "description": "Warranty coverage and contractor responsibility are validated against the policy.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-7"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "pause", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
+        "activeAgentIds": [
+          "agent-policy"
+        ],
+        "activeSystemIds": [
+          "system-policy-repository"
+        ],
+        "activeSpecialistAgentId": "agent-policy",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
         "toolActivity": 7,
-        "artifactsProduced": 2
+        "artifactsProduced": 1
       }
     },
     {
       "id": "M12",
       "order": 12,
-      "startSecond": 330,
-      "durationSeconds": 30,
-      "sceneId": "scene-approval",
-      "stage": "Approval",
-      "title": "Resolution prepared",
-      "description": "Reveal the repair plan and non-numeric service recovery credit.",
+      "startSecond": 111,
+      "durationSeconds": 28,
+      "sceneId": "scene-investigation",
+      "stage": "Investigation",
+      "title": "Policy Evidence Package prepared",
+      "description": "Policy Evidence Package is completed and ready for handoff.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-5" },
-        { "type": "show_resolution_plan" }
+        {
+          "type": "make_artifact_available",
+          "artifactId": "artifact-policy"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
+        "activeAgentIds": [
+          "agent-policy"
+        ],
+        "activeSystemIds": [
+          "system-policy-repository"
+        ],
+        "activeSpecialistAgentId": "agent-policy",
+        "officerMode": "standby",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
         "approvalStatus": "not_required",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 8,
+        "toolActivity": 7,
         "artifactsProduced": 2
       }
     },
     {
       "id": "M13",
       "order": 13,
-      "startSecond": 360,
-      "durationSeconds": 30,
-      "sceneId": "scene-approval",
-      "stage": "Approval",
-      "title": "Approval requested",
-      "description": "Make the approval package available and declare the human approval gate.",
+      "startSecond": 139,
+      "durationSeconds": 33,
+      "sceneId": "scene-investigation",
+      "stage": "Investigation",
+      "title": "Result returns to the Officer",
+      "description": "The Officer receives the Policy Evidence Package.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-9" },
-        { "type": "make_artifact_available", "artifactId": "artifact-approval" },
-        { "type": "set_approval_status", "value": "pending" }
+        {
+          "type": "return_to_officer"
+        },
+        {
+          "type": "set_active_agents",
+          "agentIds": []
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": null
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
-      "approvalGate": {
-        "actions": ["approve", "reject"],
-        "continuationMomentId": "M14",
-        "copy": "Approve reopening the SAP CX case, urgent inspection, and Rp31,000,000 compensation, or reject and escalate?"
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
       },
-      "failureGate": null,
-      "completion": { "presenter": "wait_for_approval", "auto": "wait_for_approval" },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "pending",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 9,
-        "artifactsProduced": 3
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-policy-repository"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 7,
+        "artifactsProduced": 2
       }
     },
     {
       "id": "M14",
       "order": 14,
-      "startSecond": 390,
-      "durationSeconds": 30,
-      "sceneId": "scene-approval",
-      "stage": "Approval",
-      "title": "Approval confirmed",
-      "description": "Record one approved resolution package.",
+      "startSecond": 172,
+      "durationSeconds": 28,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Officer dispatches Workflow Agent",
+      "description": "The Officer assigns the Workflow Agent to prepare the enterprise operational workflow.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-10" },
-        { "type": "set_approval_status", "value": "approved" },
-        { "type": "set_artifact_status", "artifactId": "artifact-approval", "value": "approved" }
+        {
+          "type": "set_active_agents",
+          "agentIds": [
+            "agent-workflow"
+          ]
+        },
+        {
+          "type": "set_active_systems",
+          "systemIds": [
+            "system-sap-cx"
+          ]
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": "agent-workflow"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "approved",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 10,
-        "artifactsProduced": 3
+        "activeAgentIds": [
+          "agent-workflow"
+        ],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": "agent-workflow",
+        "officerMode": "active",
+        "workflowStep": 0,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 7,
+        "artifactsProduced": 2
       }
     },
     {
       "id": "M15",
       "order": 15,
-      "startSecond": 420,
-      "durationSeconds": 15,
-      "sceneId": "scene-failure-recovery",
-      "stage": "Approval",
-      "title": "Contractor assignment cue",
-      "description": "The Workflow Agent initiates the repair contractor assignment.",
-      "entryEffects": [{ "type": "show_failure_injection_cue" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
+      "startSecond": 200,
+      "durationSeconds": 33,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Workflow step 1 \u2014 Maintenance Work Order",
+      "description": "Step 1 of 4 submitted: Maintenance Work Order.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-8"
+        },
+        {
+          "type": "set_workflow_step",
+          "step": 1
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
       "approvalGate": null,
-      "failureGate": {
-        "action": "inject_failure",
-        "continuationMomentId": "M16",
-        "failureCode": "CONTRACTOR_REJECTED"
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
       },
-      "completion": { "presenter": "wait_for_failure_injection", "auto": "inject_failure_and_advance" },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "approved",
-        "failureStatus": "not_injected",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 10,
-        "artifactsProduced": 3
+        "activeAgentIds": [
+          "agent-workflow"
+        ],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": "agent-workflow",
+        "officerMode": "standby",
+        "workflowStep": 1,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 8,
+        "artifactsProduced": 2
       }
     },
     {
       "id": "M16",
       "order": 16,
-      "startSecond": 435,
-      "durationSeconds": 20,
-      "sceneId": "scene-failure-recovery",
-      "stage": "Approval",
-      "title": "Contractor rejected",
-      "description": "Record the contractor rejection without throwing an application error.",
+      "startSecond": 233,
+      "durationSeconds": 33,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Workflow step 2 \u2014 Site Inspection Request",
+      "description": "Step 2 of 4 submitted: Site Inspection Request.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-11" },
-        { "type": "set_failure_status", "value": "active" }
+        {
+          "type": "reveal_event",
+          "eventId": "evt-9"
+        },
+        {
+          "type": "set_workflow_step",
+          "step": 2
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
-        "playbackStatus": "failed",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "approved",
-        "failureStatus": "active",
-        "recoveryStatus": "not_started",
-        "recommendationVisible": false,
-        "toolActivity": 11,
-        "artifactsProduced": 3
+        "playbackStatus": "running",
+        "activeAgentIds": [
+          "agent-workflow"
+        ],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": "agent-workflow",
+        "officerMode": "standby",
+        "workflowStep": 2,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 9,
+        "artifactsProduced": 2
       }
     },
     {
       "id": "M17",
       "order": 17,
-      "startSecond": 455,
-      "durationSeconds": 25,
-      "sceneId": "scene-failure-recovery",
-      "stage": "Approval",
-      "title": "Rerouting to alternative contractor",
-      "description": "The Workflow Agent identifies and assigns an alternative contractor.",
-      "entryEffects": [{ "type": "set_recovery_status", "value": "recovering" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
+      "startSecond": 266,
+      "durationSeconds": 33,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Workflow step 3 \u2014 Vendor Assignment",
+      "description": "Step 3 of 4 submitted: Vendor Assignment.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-10"
+        },
+        {
+          "type": "set_workflow_step",
+          "step": 3
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
-        "playbackStatus": "recovering",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "approved",
-        "failureStatus": "active",
-        "recoveryStatus": "recovering",
-        "recommendationVisible": false,
-        "toolActivity": 11,
-        "artifactsProduced": 3
+        "playbackStatus": "running",
+        "activeAgentIds": [
+          "agent-workflow"
+        ],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": "agent-workflow",
+        "officerMode": "standby",
+        "workflowStep": 3,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 10,
+        "artifactsProduced": 2
       }
     },
     {
       "id": "M18",
       "order": 18,
-      "startSecond": 480,
-      "durationSeconds": 30,
-      "sceneId": "scene-failure-recovery",
-      "stage": "Approval",
-      "title": "Contractor accepted — task rerouted",
-      "description": "Record successful rerouting and alternative contractor acceptance.",
+      "startSecond": 299,
+      "durationSeconds": 33,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Workflow step 4 \u2014 Customer Update Schedule",
+      "description": "Step 4 of 4 submitted: Customer Update Schedule. Enterprise Workflow Package completed.",
       "entryEffects": [
-        { "type": "reveal_event", "eventId": "evt-12" },
-        { "type": "set_failure_status", "value": "recovered" },
-        { "type": "set_recovery_status", "value": "completed" }
+        {
+          "type": "reveal_event",
+          "eventId": "evt-11"
+        },
+        {
+          "type": "set_workflow_step",
+          "step": 4
+        },
+        {
+          "type": "make_artifact_available",
+          "artifactId": "artifact-workflow"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11", "evt-12"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "active",
-        "approvalStatus": "approved",
-        "failureStatus": "recovered",
-        "recoveryStatus": "completed",
-        "recommendationVisible": false,
-        "toolActivity": 12,
+        "activeAgentIds": [
+          "agent-workflow"
+        ],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": "agent-workflow",
+        "officerMode": "standby",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 11,
         "artifactsProduced": 3
       }
     },
     {
       "id": "M19",
       "order": 19,
-      "startSecond": 510,
-      "durationSeconds": 30,
-      "sceneId": "scene-resolution",
-      "stage": "Resolution",
-      "title": "Resolution begins",
-      "description": "Resolve the conflict and make the preventive artifact available.",
+      "startSecond": 332,
+      "durationSeconds": 23,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Result returns to the Officer",
+      "description": "The Officer receives the Enterprise Workflow Package.",
       "entryEffects": [
-        { "type": "set_conflict_status", "value": "resolved" },
-        { "type": "make_artifact_available", "artifactId": "artifact-prevention" }
+        {
+          "type": "return_to_officer"
+        },
+        {
+          "type": "set_active_agents",
+          "agentIds": []
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": null
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11", "evt-12"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval", "artifact-prevention"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "advance", "auto": "advance" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "resolved",
-        "approvalStatus": "approved",
-        "failureStatus": "recovered",
-        "recoveryStatus": "completed",
-        "recommendationVisible": false,
-        "toolActivity": 12,
-        "artifactsProduced": 4
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-cx"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 11,
+        "artifactsProduced": 3
       }
     },
     {
       "id": "M20",
       "order": 20,
-      "startSecond": 540,
-      "durationSeconds": 30,
-      "sceneId": "scene-resolution",
-      "stage": "Resolution",
-      "title": "Preventive recommendation",
-      "description": "Reveal the final preventive control recommendation and final metric values.",
+      "startSecond": 355,
+      "durationSeconds": 25,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Officer dispatches Finance Agent",
+      "description": "The Officer assigns the Finance Agent to complete the financial recommendation.",
       "entryEffects": [
-        { "type": "set_recommendation_visible", "value": true },
-        { "type": "finalize_metrics" }
+        {
+          "type": "set_active_agents",
+          "agentIds": [
+            "agent-finance"
+          ]
+        },
+        {
+          "type": "set_active_systems",
+          "systemIds": [
+            "system-sap-s4hana"
+          ]
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": "agent-finance"
+        }
       ],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11", "evt-12"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval", "artifact-prevention"],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "pause", "auto": "pause" },
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "resolved",
-        "approvalStatus": "approved",
-        "failureStatus": "recovered",
-        "recoveryStatus": "completed",
-        "recommendationVisible": true,
-        "toolActivity": 12,
-        "artifactsProduced": 4
+        "activeAgentIds": [
+          "agent-finance"
+        ],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": "agent-finance",
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 11,
+        "artifactsProduced": 3
       }
     },
     {
       "id": "M21",
       "order": 21,
+      "startSecond": 380,
+      "durationSeconds": 30,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Finance Agent reviews costs",
+      "description": "Repair estimate reviewed against handover records.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-12"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [
+          "agent-finance"
+        ],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": "agent-finance",
+        "officerMode": "standby",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 12,
+        "artifactsProduced": 3
+      }
+    },
+    {
+      "id": "M22",
+      "order": 22,
+      "startSecond": 410,
+      "durationSeconds": 35,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Finance Agent validates compensation",
+      "description": "Compensation basis validated; budget availability confirmed.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-13"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [
+          "agent-finance"
+        ],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": "agent-finance",
+        "officerMode": "standby",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 13,
+        "artifactsProduced": 3
+      }
+    },
+    {
+      "id": "M23",
+      "order": 23,
+      "startSecond": 445,
+      "durationSeconds": 32,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Financial Recommendation Package prepared",
+      "description": "Financial Recommendation Package is completed and ready for handoff.",
+      "entryEffects": [
+        {
+          "type": "make_artifact_available",
+          "artifactId": "artifact-finance"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [
+          "agent-finance"
+        ],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": "agent-finance",
+        "officerMode": "standby",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 13,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M24",
+      "order": 24,
+      "startSecond": 477,
+      "durationSeconds": 18,
+      "sceneId": "scene-workflow",
+      "stage": "Workflow",
+      "title": "Result returns to the Officer",
+      "description": "The Officer receives the Financial Recommendation Package.",
+      "entryEffects": [
+        {
+          "type": "return_to_officer"
+        },
+        {
+          "type": "set_active_agents",
+          "agentIds": []
+        },
+        {
+          "type": "set_active_specialist",
+          "agentId": null
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "pause",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "not_required",
+        "toolActivity": 13,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M25",
+      "order": 25,
+      "startSecond": 495,
+      "durationSeconds": 20,
+      "sceneId": "scene-approval",
+      "stage": "Approval",
+      "title": "Approval package presented",
+      "description": "The Officer presents the resolution package for human approval.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-14"
+        },
+        {
+          "type": "set_approval_status",
+          "value": "pending"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": {
+        "actions": [
+          "approve",
+          "reject"
+        ],
+        "continuationMomentId": "M26",
+        "copy": "Approve the resolution package for Bu Rina and start the enterprise approval workflow, or reject and escalate for review?"
+      },
+      "completion": {
+        "presenter": "wait_for_approval",
+        "auto": "wait_for_approval"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 0,
+        "customerResponseSent": false,
+        "approvalStatus": "pending",
+        "toolActivity": 14,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M26",
+      "order": 26,
+      "startSecond": 515,
+      "durationSeconds": 15,
+      "sceneId": "scene-approval",
+      "stage": "Approval",
+      "title": "Approver 1 \u2014 Customer Service Supervisor approved",
+      "description": "Dewi Anggraini (Customer Service Supervisor) approves.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-15"
+        },
+        {
+          "type": "set_approval_status",
+          "value": "approved"
+        },
+        {
+          "type": "advance_approver",
+          "index": 1
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "pause",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 1,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 15,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M27",
+      "order": 27,
+      "startSecond": 530,
+      "durationSeconds": 10,
+      "sceneId": "scene-approval",
+      "stage": "Approval",
+      "title": "Approver 2 \u2014 Property Operations Manager approved",
+      "description": "Arif Pratama (Property Operations Manager) approves.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-16"
+        },
+        {
+          "type": "advance_approver",
+          "index": 2
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "pause",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 2,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 16,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M28",
+      "order": 28,
+      "startSecond": 540,
+      "durationSeconds": 10,
+      "sceneId": "scene-approval",
+      "stage": "Approval",
+      "title": "Approver 3 \u2014 Finance Controller approved",
+      "description": "Maya Santoso (Finance Controller) approves.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-17"
+        },
+        {
+          "type": "advance_approver",
+          "index": 3
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "pause",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 3,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 17,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M29",
+      "order": 29,
+      "startSecond": 550,
+      "durationSeconds": 5,
+      "sceneId": "scene-approval",
+      "stage": "Approval",
+      "title": "Approver 4 \u2014 Business Unit Director approved",
+      "description": "Rizky Hartono (Business Unit Director) approves. Enterprise approval workflow complete.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-18"
+        },
+        {
+          "type": "advance_approver",
+          "index": 4
+        },
+        {
+          "type": "set_artifact_status",
+          "artifactId": "artifact-finance",
+          "value": "approved"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17",
+        "evt-18"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 4,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 18,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M30",
+      "order": 30,
+      "startSecond": 555,
+      "durationSeconds": 5,
+      "sceneId": "scene-resolution",
+      "stage": "Resolution",
+      "title": "Approved resolution returns to the Officer",
+      "description": "The Officer receives the approved resolution and disbursement instruction.",
+      "entryEffects": [
+        {
+          "type": "return_to_officer"
+        },
+        {
+          "type": "set_active_systems",
+          "systemIds": [
+            "system-crm",
+            "system-sap-s4hana"
+          ]
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17",
+        "evt-18"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm",
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 4,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 18,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M31",
+      "order": 31,
+      "startSecond": 560,
+      "durationSeconds": 5,
+      "sceneId": "scene-resolution",
+      "stage": "Resolution",
+      "title": "Officer prepares customer response",
+      "description": "The Officer composes the final Bahasa Indonesia response for the customer.",
+      "entryEffects": [
+        {
+          "type": "hold_state"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17",
+        "evt-18"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm",
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 4,
+        "customerResponseSent": false,
+        "approvalStatus": "approved",
+        "toolActivity": 18,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M32",
+      "order": 32,
+      "startSecond": 565,
+      "durationSeconds": 5,
+      "sceneId": "scene-resolution",
+      "stage": "Resolution",
+      "title": "Customer response sent",
+      "description": "The final customer message is delivered.",
+      "entryEffects": [
+        {
+          "type": "reveal_event",
+          "eventId": "evt-19"
+        },
+        {
+          "type": "send_customer_response"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17",
+        "evt-18",
+        "evt-19"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
+      "approvalGate": null,
+      "completion": {
+        "presenter": "advance",
+        "auto": "advance"
+      },
+      "expected": {
+        "playbackStatus": "running",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm",
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 4,
+        "customerResponseSent": true,
+        "approvalStatus": "approved",
+        "toolActivity": 19,
+        "artifactsProduced": 4
+      }
+    },
+    {
+      "id": "M33",
+      "order": 33,
       "startSecond": 570,
       "durationSeconds": 30,
       "sceneId": "scene-resolution",
       "stage": "Resolution",
-      "title": "Completed state hold",
-      "description": "Hold the final state and complete at 10:00 scheduled time.",
-      "entryEffects": [{ "type": "hold_final_state" }],
-      "visibleEventIds": ["evt-1", "evt-2", "evt-6", "evt-3", "evt-7", "evt-4", "evt-8", "evt-5", "evt-9", "evt-10", "evt-11", "evt-12"],
-      "availableArtifactIds": ["artifact-summary", "artifact-conflict", "artifact-approval", "artifact-prevention"],
+      "title": "Case closed",
+      "description": "The case is closed; the final state is held.",
+      "entryEffects": [
+        {
+          "type": "hold_final_state"
+        }
+      ],
+      "visibleEventIds": [
+        "evt-1",
+        "evt-2",
+        "evt-3",
+        "evt-4",
+        "evt-5",
+        "evt-6",
+        "evt-7",
+        "evt-8",
+        "evt-9",
+        "evt-10",
+        "evt-11",
+        "evt-12",
+        "evt-13",
+        "evt-14",
+        "evt-15",
+        "evt-16",
+        "evt-17",
+        "evt-18",
+        "evt-19"
+      ],
+      "availableArtifactIds": [
+        "artifact-complaint",
+        "artifact-policy",
+        "artifact-workflow",
+        "artifact-finance"
+      ],
       "approvalGate": null,
-      "failureGate": null,
-      "completion": { "presenter": "complete", "auto": "complete" },
+      "completion": {
+        "presenter": "complete",
+        "auto": "complete"
+      },
       "expected": {
         "playbackStatus": "running",
-        "activeAgentIds": ["agent-customer-complaint", "agent-policy", "agent-workflow", "agent-finance"],
-        "activeSystemIds": ["system-crm", "system-policy-repository", "system-sap-cx", "system-sap-s4hana"],
-        "conflictStatus": "resolved",
+        "activeAgentIds": [],
+        "activeSystemIds": [
+          "system-crm",
+          "system-sap-s4hana"
+        ],
+        "activeSpecialistAgentId": null,
+        "officerMode": "active",
+        "workflowStep": 4,
+        "approversCompleted": 4,
+        "customerResponseSent": true,
         "approvalStatus": "approved",
-        "failureStatus": "recovered",
-        "recoveryStatus": "completed",
-        "recommendationVisible": true,
-        "toolActivity": 12,
+        "toolActivity": 19,
         "artifactsProduced": 4
       }
     }
