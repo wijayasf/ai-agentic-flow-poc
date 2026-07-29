@@ -16,8 +16,11 @@ export type RuntimeDomainPlaybackStatus = RuntimePlaybackStatus
 
 export type TerminalOutcome = 'unresolved' | 'approved' | 'escalated'
 
+export type PauseReason = 'user' | 'moment'
+
 export type RuntimeState = RuntimeStateFixture & {
   readonly terminalOutcome: TerminalOutcome
+  readonly pauseReason?: PauseReason
 }
 
 export type RuntimeAction =

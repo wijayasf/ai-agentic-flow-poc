@@ -55,131 +55,21 @@
 
 .connectorRail span[data-state='working'] {
   --connector-color: var(--color-primary-blue);
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--connector-color) 0 4px,
-    transparent 4px 8px
-  );
-  background-size: 100% 8px;
-  animation: connectorFlowVertical 0.7s linear infinite;
+  background: var(--connector-color);
 }
 
 .connectorRail span[data-dispatching='true'] {
   --connector-color: var(--color-primary-blue);
-  background: linear-gradient(
-    to bottom,
-    rgba(21, 94, 239, 0.18) 0%,
-    rgba(21, 94, 239, 0.55) 55%,
-    rgba(21, 94, 239, 0.18) 100%
-  );
-  background-size: 100% 200%;
-  animation: connectorDispatchTravel 1.4s ease-in-out infinite;
+  background: rgba(21, 94, 239, 0.5);
 }
 
 .connectorRail span[data-wave='investigation'] {
   --connector-color: var(--color-primary-blue);
-  animation: connectorInvestigationWave 900ms ease-out 1 both;
-}
-
-.connectorRail span[data-wave='investigation'][data-agent-id='agent-workflow'] {
-  animation-delay: 180ms;
-}
-
-.connectorRail span[data-wave='investigation'][data-agent-id='agent-finance'] {
-  animation-delay: 360ms;
-}
-
-.connectorRail span[data-wave='investigation']::before {
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-round);
-  background: var(--color-primary-blue);
-  content: '';
-  animation: connectorDispatchDot 900ms ease-out 1 both;
-}
-
-.connectorRail span[data-wave='investigation'][data-agent-id='agent-workflow']::before {
-  animation-delay: 180ms;
-}
-
-.connectorRail span[data-wave='investigation'][data-agent-id='agent-finance']::before {
-  animation-delay: 360ms;
-}
-
-@keyframes connectorInvestigationWave {
-  0% {
-    opacity: 0.35;
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
 }
 
 .connectorRail span[data-dispatching='true']::after {
   border-top-color: var(--color-primary-blue);
   opacity: 0.85;
-}
-
-.connectorRail span[data-dispatching='true']::before {
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-round);
-  background: var(--color-primary-blue);
-  content: '';
-  animation: connectorDispatchDot 1.4s ease-in-out infinite;
-}
-
-@keyframes connectorDispatchTravel {
-  0% {
-    background-position: 0 -100%;
-  }
-  100% {
-    background-position: 0 100%;
-  }
-}
-
-@keyframes connectorDispatchDot {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(14px);
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .connectorRail span[data-dispatching='true'] {
-    background: rgba(21, 94, 239, 0.5);
-    animation: none;
-  }
-
-  .connectorRail span[data-dispatching='true']::before {
-    animation: none;
-    opacity: 0.9;
-  }
-
-  .connectorRail span[data-wave='investigation'],
-  .connectorRail span[data-wave='investigation']::before {
-    animation: none;
-    opacity: 1;
-  }
 }
 
 .connectorRail span[data-state='completed'] {
@@ -228,8 +118,3 @@
   bottom: -2px;
 }
 
-@keyframes connectorFlowVertical {
-  to {
-    background-position: 0 8px;
-  }
-}

@@ -56,17 +56,14 @@
   object-fit: contain;
 }
 
-/* Command Mode (red) — full component takes on a red identity while the
- * Commander is actively orchestrating. Border, background, glyph badge,
- * title, and status accent all flip. A subtle breathing pulse marks the
- * component as the orchestration focal point. */
+/* Command Mode (red) — static red identity while the Commander is actively
+ * orchestrating. No animation per stakeholder Point G decision. */
 .card[data-command-mode='active'] {
   border-color: #d92d20;
   background: #fef3f2;
   box-shadow:
     0 0 0 2px rgba(217, 45, 32, 0.14),
     var(--shadow-card-active);
-  animation: commanderCommandBreathe 1800ms ease-in-out infinite;
 }
 
 .card[data-command-mode='active'] .glyph {
@@ -82,50 +79,15 @@
   color: #b42318;
 }
 
-@keyframes commanderCommandBreathe {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 2px rgba(217, 45, 32, 0.14),
-      0 0 12px 2px rgba(217, 45, 32, 0.14),
-      var(--shadow-card-active);
-  }
-  50% {
-    box-shadow:
-      0 0 0 4px rgba(217, 45, 32, 0.28),
-      0 0 22px 6px rgba(217, 45, 32, 0.22),
-      var(--shadow-card-active);
-  }
-}
-
-/* Command Mode + Conflict — same red identity, stronger halo intensity. */
+/* Command Mode + Conflict — stronger static halo. */
 .card[data-command-mode='active'][data-attention='conflict'] {
-  animation: commanderCommandBreatheStrong 1400ms ease-in-out infinite;
-}
-
-@keyframes commanderCommandBreatheStrong {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 3px rgba(217, 45, 32, 0.28),
-      0 0 20px 4px rgba(217, 45, 32, 0.22),
-      var(--shadow-card-active);
-  }
-  50% {
-    box-shadow:
-      0 0 0 6px rgba(217, 45, 32, 0.44),
-      0 0 32px 10px rgba(217, 45, 32, 0.36),
-      var(--shadow-card-active);
-  }
+  box-shadow:
+    0 0 0 3px rgba(217, 45, 32, 0.28),
+    var(--shadow-card-active);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card {
     transition: none;
-  }
-
-  .card[data-command-mode='active'],
-  .card[data-command-mode='active'][data-attention='conflict'] {
-    animation: none;
   }
 }

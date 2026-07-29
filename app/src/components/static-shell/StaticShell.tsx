@@ -58,11 +58,13 @@ function DemoHeader({
   viewModel: RuntimeViewModel
   headerActions?: ReactNode
 }) {
-  const { timer, currentSceneId } = viewModel
+  const { timer, currentSceneId, currentStage, currentMoment } = viewModel
   const sceneMeta = currentSceneId ? SCENE_META[currentSceneId] : null
   const subtitleText = sceneMeta
     ? `Scene ${sceneMeta.index} · ${sceneMeta.label}`
     : DEMO_TAGLINE
+  const stageLabel = currentStage ?? '—'
+  const stepLabel = currentMoment?.id ?? '—'
   return (
     <header className={styles.header}>
       <div className={styles.brandGroup}>
@@ -76,6 +78,25 @@ function DemoHeader({
       </div>
       <div className={styles.headerActions}>
         {headerActions}
+        <div
+          className={styles.playbackVisual}
+          aria-label={`Demo Playback. Current stage ${stageLabel}. Current step ${stepLabel}.`}
+          data-testid="header-demo-playback"
+        >
+          <Icon name="play" size={19} aria-hidden="true" />
+          <div className={styles.playbackStack}>
+            <span className={styles.playbackLabel}>Demo Playback</span>
+            <span className={styles.playbackMeta}>
+              <span>
+                Stage <strong>{stageLabel}</strong>
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>
+                Step <strong>{stepLabel}</strong>
+              </span>
+            </span>
+          </div>
+        </div>
         <div
           className={styles.timerVisual}
           aria-label={`Demo time ${timer.elapsedText} of ${timer.totalText}`}
@@ -483,7 +504,6 @@ function TrustObservabilityPanel(props: StaticShellProps) {
                 state={props.state}
                 viewModel={props.viewModel}
               />
-              <ArtifactList viewModel={props.viewModel} />
               <InvestigationEvidence viewModel={props.viewModel} />
               {props.viewModel.approvalGate === null ? (
                 props.viewModel.outcomePreview !== null ? (
@@ -494,6 +514,7 @@ function TrustObservabilityPanel(props: StaticShellProps) {
                   <DecisionRationale viewModel={props.viewModel} />
                 )
               ) : null}
+              <ArtifactList viewModel={props.viewModel} />
             </>
           )}
         </div>

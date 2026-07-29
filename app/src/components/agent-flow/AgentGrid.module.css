@@ -120,9 +120,6 @@
   width: 0;
   height: 100%;
   background: var(--color-primary-blue);
-  transition:
-    width 320ms ease-out,
-    background-color 240ms ease;
 }
 
 .card[data-progress='active'] .progressFill {
@@ -170,9 +167,3 @@
  * F1.1 decision: status is communicated by lifecycle colour + short text only.
  * No dot pulse, no progress oscillation, no card glow. */
 
-@media (prefers-reduced-motion: reduce) {
-  .progressFill,
-  .card[data-progress='active'] .progressFill {
-    transition: none;
-  }
-}

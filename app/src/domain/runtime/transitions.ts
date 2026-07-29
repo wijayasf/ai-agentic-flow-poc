@@ -75,7 +75,12 @@ function resolveBoundary(
         : enterMoment(state, next)
     }
     case 'pause':
-      return { ...state, playbackStatus: 'paused', timerActive: false }
+      return {
+        ...state,
+        playbackStatus: 'paused',
+        timerActive: false,
+        pauseReason: 'moment',
+      }
     case 'wait_for_approval':
       return { ...state, playbackStatus: 'waiting_approval', timerActive: false }
     case 'complete':
@@ -136,7 +141,15 @@ export function isRuntimeActionLegal(
     case 'PAUSE':
       return state.playbackStatus === 'running' && state.timerActive
     case 'RESUME':
-      return state.playbackStatus === 'paused' && moment !== null
+      // Resume is only offered for user-initiated pauses. Presenter-mode
+      // intentional pauses (moment boundary or post-APPROVE) advance via
+      // Next Moment only, per Point G. Undefined pauseReason (legacy state)
+      // is treated as user-initiated for backward compatibility.
+      return (
+        state.playbackStatus === 'paused' &&
+        moment !== null &&
+        state.pauseReason !== 'moment'
+      )
     case 'NEXT_MOMENT':
       // Legal in presenter mode whenever the timer is either running or
       // paused (excluding approval gate and terminal states). This lets the
@@ -187,7 +200,12 @@ export function transitionRuntimeState(
     case 'START':
       return enterMoment(state, fixtures.timeline.moments[0])
     case 'PAUSE':
-      return { ...state, playbackStatus: 'paused', timerActive: false }
+      return {
+        ...state,
+        playbackStatus: 'paused',
+        timerActive: false,
+        pauseReason: 'user',
+      }
     case 'RESUME': {
       if (moment === null) return state
       if (state.remainingSeconds === 0) {
@@ -200,6 +218,7 @@ export function transitionRuntimeState(
         ...state,
         playbackStatus: moment.expected.playbackStatus,
         timerActive: true,
+        pauseReason: undefined,
       }
     }
     case 'NEXT_MOMENT': {
@@ -227,6 +246,7 @@ export function transitionRuntimeState(
         ...entered,
         playbackStatus: 'paused',
         timerActive: false,
+        pauseReason: 'moment',
       }
     }
     case 'APPROVE': {
@@ -243,7 +263,12 @@ export function transitionRuntimeState(
       // without needing Resume. Auto mode: let the timer run so the flow
       // auto-cascades through the approval chain and out into disbursement.
       if (state.mode === 'presenter') {
-        return { ...entered, playbackStatus: 'paused', timerActive: false }
+        return {
+          ...entered,
+          playbackStatus: 'paused',
+          timerActive: false,
+          pauseReason: 'moment',
+        }
       }
       return entered
     }
