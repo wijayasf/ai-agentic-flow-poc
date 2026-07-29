@@ -65,47 +65,13 @@ describe('responsive model', () => {
 })
 
 describe('ResponsiveDemoShell', () => {
-  it('keeps Presenter Assist off by default and toggles it without runtime actions', () => {
+  it('does not render Presenter Assist toggle or surface on desktop', () => {
     setViewport(1440, 900)
-    const { actions } = renderResponsive()
-    const toggle = screen.getByRole('button', { name: 'Presenter Assist: Off' })
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    renderResponsive()
+    expect(
+      screen.queryByRole('button', { name: /Presenter Assist/ }),
+    ).not.toBeInTheDocument()
     expect(screen.queryByTestId('presenter-assist-surface')).not.toBeInTheDocument()
-
-    fireEvent.click(toggle)
-    expect(screen.getByTestId('presenter-assist-surface')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Presenter Assist' })).toBeInTheDocument()
-    expect(screen.getByText('This demo shows how the AI Agentic Case Officer coordinates specialist agents through a deterministic case resolution flow.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled()
-    Object.values(actions).forEach((action) => expect(action).not.toHaveBeenCalled())
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close Presenter Assist' }))
-    expect(screen.queryByTestId('presenter-assist-surface')).not.toBeInTheDocument()
-    expect(document.activeElement).toBe(toggle)
-  })
-
-  it('closes the non-modal desktop panel with Escape while preserving the canvas', () => {
-    setViewport(1440, 900)
-    renderResponsive(autoAtApprovalGate())
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
-    expect(screen.getByText('Paused for human decision')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled()
-    fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.queryByTestId('presenter-assist-surface')).not.toBeInTheDocument()
-    expect(screen.getByTestId('canonical-design-surface')).toBeInTheDocument()
-  })
-
-  it('keeps the same Presenter Assist preference and approval state across viewport categories', () => {
-    setViewport(768, 1024)
-    renderResponsive(autoAtApprovalGate())
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
-    expect(screen.getByRole('region', { name: 'tablet control room' })).toBeInTheDocument()
-    expect(screen.getByTestId('presenter-assist-surface')).toHaveAttribute('data-variant', 'panel')
-
-    setViewport(430, 932)
-    expect(screen.getByTestId('presenter-assist-surface')).toHaveAttribute('data-variant', 'sheet')
-    expect(screen.getByText('Paused for human decision')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Presenter Assist: On' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('preserves the canonical control room on desktop and tablet', () => {
@@ -220,7 +186,6 @@ describe('ResponsiveDemoShell', () => {
     expect(screen.getByRole('region', { name: 'Full desktop control room canvas' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Fit to Screen' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Reset View' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Demo time 00:00 of 10:00')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Reset View' }))
     expect(screen.getByRole('button', { name: 'Fit to Screen' })).toHaveAttribute('aria-pressed', 'false')
     fireEvent.click(screen.getByRole('button', { name: 'Story View' }))
@@ -230,31 +195,16 @@ describe('ResponsiveDemoShell', () => {
     expect(screen.getByRole('button', { name: /Open Mobile Story View/ })).toBeInTheDocument()
   })
 
-  it('keeps one mobile Presenter Assist sheet open across Story and Full Desktop views', () => {
-    setViewport(430, 932)
-    renderResponsive(autoAtApprovalGate())
-    fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
-
-    const sheet = screen.getByTestId('presenter-assist-surface')
-    expect(sheet).toHaveAttribute('data-variant', 'sheet')
-    expect(screen.getByRole('tablist', { name: 'Mobile story sections' })).toBeInTheDocument()
-    expect(screen.getByText('Paused for human decision')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Overview' }))
-    expect(screen.getByRole('region', { name: 'Full desktop control room canvas' })).toBeInTheDocument()
-    expect(screen.getByTestId('presenter-assist-surface')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Presenter Assist: On' })).toHaveAttribute('aria-pressed', 'true')
-  })
-
-  it('keeps mobile approval callbacks and Q&A controls available with the sheet', () => {
+  it('routes mobile approval callbacks without any Presenter Assist surface', () => {
     setViewport(430, 932)
     const { actions } = renderResponsive(autoAtApprovalGate())
     fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
     fireEvent.click(screen.getByRole('tab', { name: /Human Approval/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
 
-    expect(screen.getByText('Optional Q&A Prompts')).toBeInTheDocument()
-    expect(screen.getByText('Can Auto Mode bypass human approval?')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Presenter Assist/ }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('presenter-assist-surface')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
     expect(actions.approve).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('tablist', { name: 'Mobile story sections' })).toBeInTheDocument()

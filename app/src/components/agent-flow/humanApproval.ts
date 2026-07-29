@@ -97,6 +97,10 @@ export function selectHumanApproval(
   fixtures: RuntimeFixtureBundle = runtimeFixtures,
 ): HumanApprovalViewModel | null {
   if (state.terminalOutcome === 'escalated') return null
+  // At successful case completion, FinalOutcome (Case Resolved) already carries
+  // the "4 of 4 approvals completed" summary; suppress the Human Approval card
+  // and its End-of-AI-Analysis divider so Case Resolved is the terminal visual.
+  if (state.playbackStatus === 'completed') return null
   const stage = viewModel.currentStage
   if (stage !== 'Approval' && stage !== 'Resolution') return null
 

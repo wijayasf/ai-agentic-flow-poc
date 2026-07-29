@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { selectPresenterAssist } from '../../domain/runtime'
 import { Icon } from '../icon/Icon'
-import {
-  PresenterAssistSurface,
-  PresenterAssistToggle,
-} from '../presenter-assist/PresenterAssist'
 import {
   DESIGN_SURFACE_HEIGHT,
   DESIGN_SURFACE_WIDTH,
@@ -139,35 +134,11 @@ export function ResponsiveDemoShell(props: StaticShellProps) {
   const [mobileView, setMobileView] = useState<MobileViewMode>('entry')
   const [activeStorySection, setActiveStorySection] = useState<StorySectionId>('customer')
   const [canvasMode, setCanvasMode] = useState<CanvasMode>('fit')
-  const [presenterAssistOpen, setPresenterAssistOpen] = useState(false)
-  const presenterAssistToggleRef = useRef<HTMLButtonElement>(null)
-  const presenterAssistModel = useMemo(
-    () => selectPresenterAssist(props.state, props.viewModel),
-    [props.state, props.viewModel],
-  )
-
-  const closePresenterAssist = () => {
-    setPresenterAssistOpen(false)
-    presenterAssistToggleRef.current?.focus()
-  }
-
-  const togglePresenterAssist = () => {
-    if (presenterAssistOpen) closePresenterAssist()
-    else setPresenterAssistOpen(true)
-  }
 
   let experience
 
   if (!isMobile) {
     const scale = controlRoomScale(layout, size.width, size.height)
-    const desktopHeaderActions = (
-      <PresenterAssistToggle
-        buttonRef={presenterAssistToggleRef}
-        open={presenterAssistOpen}
-        onToggle={togglePresenterAssist}
-        variant="desktop"
-      />
-    )
     experience = (
       <main className={styles.responsiveRoot} data-responsive-layout={layout}>
         <div className={styles.controlRoomScroller} role="region" aria-label={`${layout} control room`}>
@@ -175,7 +146,6 @@ export function ResponsiveDemoShell(props: StaticShellProps) {
             {...props}
             canvasScale={scale}
             embedded
-            headerActions={desktopHeaderActions}
           />
         </div>
       </main>
@@ -205,25 +175,5 @@ export function ResponsiveDemoShell(props: StaticShellProps) {
     )
   }
 
-  return (
-    <>
-      {experience}
-      {isMobile ? (
-        <PresenterAssistToggle
-          buttonRef={presenterAssistToggleRef}
-          open={presenterAssistOpen}
-          onToggle={togglePresenterAssist}
-          variant="mobile"
-          mobileView={mobileView}
-        />
-      ) : null}
-      {presenterAssistOpen ? (
-        <PresenterAssistSurface
-          model={presenterAssistModel}
-          onClose={closePresenterAssist}
-          variant={isMobile ? 'sheet' : 'panel'}
-        />
-      ) : null}
-    </>
-  )
+  return experience
 }

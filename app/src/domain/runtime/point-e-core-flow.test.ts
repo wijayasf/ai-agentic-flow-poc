@@ -565,15 +565,13 @@ describe('Point F1 — Human Approval progress 0/4 → 4/4', () => {
     const finalVm = selectRuntimeViewModel(state)
     const finalApproval = selectHumanApproval(state, finalVm)
     expect(finalApproval?.approvers.map((a) => a.index)).toEqual([1, 2, 3, 4])
-    // Collapsed summary states 4 of 4 approvals.
+    // At successful completion the FinalOutcome (Case Resolved) card carries
+    // the "4 of 4 approvals completed" summary; the Human Approval selector
+    // returns null so the trust panel does not render a compact approval card
+    // beneath Case Resolved.
     state = advance(state, 600)
     const terminalVm = selectRuntimeViewModel(state)
-    const terminalApproval = selectHumanApproval(state, terminalVm)
-    expect(terminalApproval?.isCollapsed).toBe(true)
-    expect(terminalApproval?.collapsedSummary.progressLabel).toBe(
-      '4 of 4 approvals',
-    )
-    // Still publishes all four approvers for the expanded (View details) case.
-    expect(terminalApproval?.approvers.map((a) => a.index)).toEqual([1, 2, 3, 4])
+    expect(terminalVm.playbackStatus).toBe('completed')
+    expect(selectHumanApproval(state, terminalVm)).toBeNull()
   })
 })
