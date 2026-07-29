@@ -78,19 +78,6 @@ function resolveBoundary(
       return { ...state, playbackStatus: 'paused', timerActive: false }
     case 'wait_for_approval':
       return { ...state, playbackStatus: 'waiting_approval', timerActive: false }
-    case 'wait_for_failure_injection':
-      return {
-        ...state,
-        playbackStatus: 'waiting_failure_injection',
-        timerActive: false,
-      }
-    case 'inject_failure_and_advance': {
-      const failed = findMoment(
-        moment.failureGate?.continuationMomentId ?? null,
-        fixtures,
-      )
-      return failed === null ? state : enterMoment(state, failed)
-    }
     case 'complete':
       return createCompletedRuntimeState(state.mode, fixtures)
     default:
@@ -149,19 +136,19 @@ export function isRuntimeActionLegal(
     case 'PAUSE':
       return state.playbackStatus === 'running' && state.timerActive
     case 'RESUME':
-      return (
-        state.playbackStatus === 'paused' &&
-        moment !== null &&
-        (state.remainingSeconds !== 0 || moment.failureGate === null)
-      )
+      return state.playbackStatus === 'paused' && moment !== null
     case 'NEXT_MOMENT':
+      // Legal in presenter mode whenever the timer is either running or
+      // paused (excluding approval gate and terminal states). This lets the
+      // presenter advance past any intentional pause AND fast-forward the
+      // remainder of the current moment without needing a separate Resume.
       return (
         state.mode === 'presenter' &&
-        state.playbackStatus === 'paused' &&
+        (state.playbackStatus === 'paused' ||
+          state.playbackStatus === 'running') &&
         moment !== null &&
         nextMoment(moment, fixtures) !== null &&
-        moment.approvalGate === null &&
-        moment.failureGate === null
+        moment.approvalGate === null
       )
     case 'APPROVE':
     case 'REJECT':
@@ -171,21 +158,12 @@ export function isRuntimeActionLegal(
         moment?.approvalGate !== undefined &&
         state.approvalStatus === 'pending'
       )
-    case 'INJECT_FAILURE':
-      return (
-        state.mode === 'presenter' &&
-        state.playbackStatus === 'waiting_failure_injection' &&
-        state.currentMomentId === fixtures.timeline.failureRecovery.cueMomentId &&
-        state.failureStatus === 'not_injected'
-      )
     case 'ADVANCE_TIME':
       return (
         state.timerActive &&
         Number.isFinite(action.seconds) &&
         action.seconds > 0 &&
-        (state.playbackStatus === 'running' ||
-          state.playbackStatus === 'failed' ||
-          state.playbackStatus === 'recovering')
+        state.playbackStatus === 'running'
       )
     case 'RESTART':
       return true
@@ -229,8 +207,24 @@ export function transitionRuntimeState(
       const completed = withCompletedMoment(state, moment)
       const next = nextMoment(moment, fixtures)
       if (next === null) return state
+      const entered = enterMoment(completed, next)
+      // Approval-chain tail: once the fourth approver is recorded, let the
+      // timer run so the flow auto-cascades out of the approval scene without
+      // requiring a Resume click.
+      if (entered.approversCompleted === 4) return entered
+      // Approval gate: if Next Moment lands on a moment whose mode-specific
+      // completion is 'wait_for_approval', apply the gate state immediately
+      // so the presenter proceeds straight from Finance recommendation to
+      // Human Approval without watching an artificial pre-gate timer run.
+      if (next.completion[state.mode] === 'wait_for_approval') {
+        return {
+          ...entered,
+          playbackStatus: 'waiting_approval',
+          timerActive: false,
+        }
+      }
       return {
-        ...enterMoment(completed, next),
+        ...entered,
         playbackStatus: 'paused',
         timerActive: false,
       }
@@ -240,12 +234,18 @@ export function transitionRuntimeState(
         moment?.approvalGate?.continuationMomentId ?? null,
         fixtures,
       )
-      return approved === null
-        ? state
-        : enterMoment(
-            { ...state, terminalOutcome: 'unresolved' },
-            approved,
-          )
+      if (approved === null) return state
+      const entered = enterMoment(
+        { ...state, terminalOutcome: 'unresolved' },
+        approved,
+      )
+      // Presenter mode: pause so Next Moment paces each remaining approver
+      // without needing Resume. Auto mode: let the timer run so the flow
+      // auto-cascades through the approval chain and out into disbursement.
+      if (state.mode === 'presenter') {
+        return { ...entered, playbackStatus: 'paused', timerActive: false }
+      }
+      return entered
     }
     case 'REJECT': {
       return {
@@ -253,20 +253,10 @@ export function transitionRuntimeState(
         playbackStatus: 'completed',
         approvalStatus: 'rejected',
         terminalOutcome: 'escalated',
-        availableArtifactIds: state.availableArtifactIds.filter(
-          (artifactId) => artifactId !== 'artifact-approval',
-        ),
-        recommendationVisible: false,
+        officerMode: 'standby',
         remainingSeconds: 0,
         timerActive: false,
       }
-    }
-    case 'INJECT_FAILURE': {
-      const failed = findMoment(
-        moment?.failureGate?.continuationMomentId ?? null,
-        fixtures,
-      )
-      return failed === null ? state : enterMoment(state, failed)
     }
     case 'ADVANCE_TIME':
       return advanceRuntimeBySeconds(state, action.seconds, fixtures)

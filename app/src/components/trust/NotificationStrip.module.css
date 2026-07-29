@@ -1,0 +1,55 @@
+.strip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-body);
+  gap: 8px;
+  transition:
+    background 240ms ease,
+    border-color 240ms ease,
+    color 240ms ease;
+}
+
+.strip[data-tone='progress'] {
+  border-color: #b8d2ff;
+  background: #f5f9ff;
+  color: #1e3f7e;
+}
+
+.strip[data-tone='success'] {
+  border-color: #a3d6b1;
+  background: #f4fbf7;
+  color: #1c6a2e;
+}
+
+.strip[data-tone='awaiting'] {
+  border-color: #f3bd5d;
+  background: var(--color-warning-strong-tint);
+  color: #9a4d00;
+}
+
+.glyph {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.message {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strip {
+    transition: none;
+  }
+}

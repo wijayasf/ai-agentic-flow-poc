@@ -10,8 +10,6 @@ import type { RuntimeController } from './types'
 const TIMER_TICK_MILLISECONDS = 1_000
 const TIMER_TICK_SECONDS = 1
 const AUTO_APPROVE_DELAY_MILLISECONDS = 10_000
-const AUTO_LEARNING_PAUSE_MILLISECONDS = 8_000
-const LEARNING_PAUSE_MOMENT_ID = 'M20' as const
 
 export function useRuntimeController(): RuntimeController {
   const [state, dispatch] = useReducer(
@@ -45,24 +43,6 @@ export function useRuntimeController(): RuntimeController {
     return () => window.clearTimeout(timeoutId)
   }, [state.mode, state.playbackStatus])
 
-  // Auto Mode: continue past the Learning pause after 8 wall-clock seconds.
-  // The timeline timer is frozen during the Learning pause (paused at M20), so a
-  // dedicated one-shot timeout drives continuation. The approval timeout and this
-  // timeout are mutually exclusive: approval requires waiting_approval; this
-  // requires paused at M20. Cleanup fires on restart, mode switch, or any state
-  // change that removes the paused-at-M20 condition.
-  useEffect(() => {
-    if (state.mode !== 'auto') return undefined
-    if (state.playbackStatus !== 'paused') return undefined
-    if (state.currentMomentId !== LEARNING_PAUSE_MOMENT_ID) return undefined
-
-    const timeoutId = window.setTimeout(() => {
-      dispatch({ type: 'RESUME' })
-    }, AUTO_LEARNING_PAUSE_MILLISECONDS)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [state.mode, state.playbackStatus, state.currentMomentId])
-
   const selectMode = useCallback((mode: DemoMode) => {
     dispatch({ type: 'SELECT_MODE', mode })
   }, [])
@@ -73,10 +53,6 @@ export function useRuntimeController(): RuntimeController {
   const restart = useCallback(() => dispatch({ type: 'RESTART' }), [])
   const approve = useCallback(() => dispatch({ type: 'APPROVE' }), [])
   const reject = useCallback(() => dispatch({ type: 'REJECT' }), [])
-  const injectFailure = useCallback(
-    () => dispatch({ type: 'INJECT_FAILURE' }),
-    [],
-  )
 
   const actions = useMemo(
     () => ({
@@ -88,12 +64,10 @@ export function useRuntimeController(): RuntimeController {
       restart,
       approve,
       reject,
-      injectFailure,
     }),
     [
       approve,
       reject,
-      injectFailure,
       nextMoment,
       pause,
       restart,

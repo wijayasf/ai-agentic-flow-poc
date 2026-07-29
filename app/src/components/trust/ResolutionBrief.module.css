@@ -1,0 +1,362 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 320ms ease,
+    background 320ms ease;
+}
+
+.card[data-phase='presented'] {
+  border-color: #c2c9d6;
+  background: #f8f9fc;
+}
+
+.card[data-phase='awaiting-review'] {
+  border-color: #b3c4e8;
+  background: #f4f7fd;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 6px;
+  background: #e6ecf6;
+  color: #2f3f5d;
+}
+
+.card[data-phase='awaiting-review'] .icon {
+  background: #dde6f7;
+  color: #1e3f7e;
+}
+
+.headingBlock {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.heading {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phaseBadge {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.phaseBadge[data-phase='presented'] {
+  border-color: #c2c9d6;
+  background: #eef1f7;
+  color: #2f3f5d;
+}
+
+.phaseBadge[data-phase='awaiting-review'] {
+  border-color: #b3c4e8;
+  background: #e3ecfa;
+  color: #1e3f7e;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sectionHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.executiveText {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.checkList,
+.conflictList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkItem,
+.conflictItem {
+  display: grid;
+  align-items: center;
+  padding: 5px 8px;
+  grid-template-columns: 16px 1fr;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+}
+
+.checkGlyph {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: #d8ecdc;
+  color: #2d7a3f;
+}
+
+.checkLabel {
+  color: var(--color-text-body);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.conflictDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-left: 4px;
+  border-radius: var(--radius-round);
+  background: #d16b6b;
+}
+
+.conflictLabel {
+  color: var(--color-text-body);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: grid;
+  align-items: flex-start;
+  padding: 8px 10px;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.optionTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.optionBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.optionTitle {
+  color: var(--color-text-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.optionDescription {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface-muted);
+}
+
+.notesHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.notesTitle {
+  font-weight: 700;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0 0 0 4px;
+  color: var(--color-text-body);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  list-style: none;
+}
+
+.notesList li::before {
+  content: '· ';
+  color: var(--color-text-muted);
+}
+
+.collapsible {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 9px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+}
+
+.collapsibleSummary {
+  display: grid;
+  align-items: center;
+  padding: 2px 0;
+  grid-template-columns: 14px 1fr auto 12px;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+  user-select: none;
+}
+
+.collapsibleSummary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsibleSummary:focus-visible {
+  outline: 2px solid #1e3f7e;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.collapsibleGlyph {
+  display: grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+
+.collapsibleTitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.collapsibleCount {
+  padding: 1px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.collapsibleChevron {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  transition: transform 160ms ease;
+}
+
+.collapsible[open] .collapsibleChevron {
+  transform: rotate(180deg);
+}
+
+.collapsible > .checkList,
+.collapsible > .conflictList {
+  margin-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  .collapsibleChevron {
+    transition: none;
+  }
+}

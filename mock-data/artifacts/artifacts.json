@@ -1,24 +1,24 @@
 {
   "artifacts": [
     {
-      "id": "artifact-summary",
+      "id": "artifact-complaint",
       "order": 1,
-      "name": "Customer Situation Summary"
+      "name": "Complaint Analysis Package"
     },
     {
-      "id": "artifact-conflict",
+      "id": "artifact-policy",
       "order": 2,
-      "name": "Conflict & Root-Cause Report"
+      "name": "Policy Evidence Package"
     },
     {
-      "id": "artifact-approval",
+      "id": "artifact-workflow",
       "order": 3,
-      "name": "Resolution & Approval Package"
+      "name": "Enterprise Workflow Package"
     },
     {
-      "id": "artifact-prevention",
+      "id": "artifact-finance",
       "order": 4,
-      "name": "Preventive Control Recommendation"
+      "name": "Financial Recommendation Package"
     }
   ]
 }

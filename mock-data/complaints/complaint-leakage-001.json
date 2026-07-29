@@ -2,23 +2,23 @@
   "id": "complaint-leakage-001",
   "customerId": "customer-rina-putri",
   "createdAt": "09:15:00",
-  "message": "Hi, after handover on 10 May, there is still leakage in the bathroom ceiling. I have reported it multiple times but the repair is still not done.",
+  "message": "Halo, setelah serah terima tanggal 10 Mei, masih ada kebocoran di plafon kamar mandi. Saya sudah beberapa kali melaporkannya, tetapi perbaikannya masih belum selesai.",
   "attachments": [
     {
       "id": "att-photo",
-      "name": "leakage photo",
+      "name": "foto kebocoran",
       "extension": "jpg",
       "type": "image"
     },
     {
       "id": "att-handover",
-      "name": "handover agreement",
+      "name": "berita acara serah terima",
       "extension": "pdf",
       "type": "document"
     },
     {
       "id": "att-receipt",
-      "name": "payment receipt",
+      "name": "bukti pembayaran",
       "extension": "pdf",
       "type": "document"
     }

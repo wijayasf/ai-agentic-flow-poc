@@ -30,23 +30,29 @@ export function applyEntryEffect(
           effect.artifactId,
         ),
       }
-    case 'set_conflict_status':
-      return { ...state, conflictStatus: effect.value }
+    case 'set_active_specialist':
+      return {
+        ...state,
+        activeSpecialistAgentId: effect.agentId,
+        officerMode: effect.agentId === null ? 'active' : 'standby',
+      }
+    case 'return_to_officer':
+      return {
+        ...state,
+        officerMode: 'active',
+        activeSpecialistAgentId: null,
+      }
+    case 'set_workflow_step':
+      return { ...state, workflowStep: effect.step }
     case 'set_approval_status':
       return { ...state, approvalStatus: effect.value }
-    case 'set_failure_status':
-      return { ...state, failureStatus: effect.value }
-    case 'set_recovery_status':
-      return { ...state, recoveryStatus: effect.value }
-    case 'set_recommendation_visible':
-      return { ...state, recommendationVisible: effect.value }
+    case 'advance_approver':
+      return { ...state, approversCompleted: effect.index }
+    case 'send_customer_response':
+      return { ...state, customerResponseSent: true }
     case 'show_customer_context':
-    case 'synchronize_investigation':
-    case 'hold_state':
-    case 'show_resolution_plan':
     case 'set_artifact_status':
-    case 'show_failure_injection_cue':
-    case 'finalize_metrics':
+    case 'hold_state':
     case 'hold_final_state':
       return state
     default:

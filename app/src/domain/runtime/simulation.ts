@@ -25,22 +25,16 @@ export function simulateAutoRun(
     ? fixtures.timeline.totalScheduledSeconds
     : approvalMoment.startSecond + approvalMoment.durationSeconds
 
-  const learningMoment = fixtures.timeline.moments.find(
-    (moment) => moment.id === fixtures.timeline.recommendation.availableAtMomentId,
-  )
-  const learningPauseEnd = learningMoment === undefined
-    ? fixtures.timeline.totalScheduledSeconds
-    : learningMoment.startSecond + learningMoment.durationSeconds
-
   return reduceRuntimeActions(
     createInitialRuntimeState('auto', fixtures),
     [
       { type: 'START' },
       { type: 'ADVANCE_TIME', seconds: approvalGateSecond },
       { type: 'APPROVE' },
-      { type: 'ADVANCE_TIME', seconds: learningPauseEnd - approvalGateSecond },
-      { type: 'RESUME' },
-      { type: 'ADVANCE_TIME', seconds: fixtures.timeline.totalScheduledSeconds - learningPauseEnd },
+      {
+        type: 'ADVANCE_TIME',
+        seconds: fixtures.timeline.totalScheduledSeconds - approvalGateSecond,
+      },
     ],
     fixtures,
   )
@@ -49,23 +43,25 @@ export function simulateAutoRun(
 export function simulatePresenterRun(
   fixtures: RuntimeFixtureBundle = runtimeFixtures,
 ): RuntimeState {
+  const approvalMoment = fixtures.timeline.moments.find(
+    (moment) => moment.id === fixtures.timeline.approval.gateMomentId,
+  )
+  const approvalGateSecond = approvalMoment === undefined
+    ? fixtures.timeline.totalScheduledSeconds
+    : approvalMoment.startSecond + approvalMoment.durationSeconds
+
   return reduceRuntimeActions(
     createInitialRuntimeState('presenter', fixtures),
     [
       { type: 'START' },
-      { type: 'ADVANCE_TIME', seconds: 90 },
-      { type: 'NEXT_MOMENT' },
+      { type: 'ADVANCE_TIME', seconds: 35 },
       { type: 'RESUME' },
-      { type: 'ADVANCE_TIME', seconds: 240 },
-      { type: 'NEXT_MOMENT' },
-      { type: 'RESUME' },
-      { type: 'ADVANCE_TIME', seconds: 60 },
+      { type: 'ADVANCE_TIME', seconds: approvalGateSecond - 35 },
       { type: 'APPROVE' },
-      { type: 'ADVANCE_TIME', seconds: 45 },
-      { type: 'INJECT_FAILURE' },
-      { type: 'ADVANCE_TIME', seconds: 135 },
-      { type: 'RESUME' },
-      { type: 'ADVANCE_TIME', seconds: 30 },
+      {
+        type: 'ADVANCE_TIME',
+        seconds: fixtures.timeline.totalScheduledSeconds - approvalGateSecond,
+      },
     ],
     fixtures,
   )

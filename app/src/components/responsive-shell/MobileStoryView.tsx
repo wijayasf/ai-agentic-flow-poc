@@ -23,6 +23,7 @@ const agentNames = {
   'agent-policy': 'Policy Agent',
   'agent-workflow': 'Workflow Agent',
   'agent-finance': 'Finance Agent',
+  officer: 'AI Agentic Case Officer',
 } as const
 
 const enterpriseSystems = [
@@ -40,6 +41,7 @@ const lifecycleLabels: Readonly<Record<AgentLifecycleStatus, string>> = {
   waiting: 'Waiting',
   working: 'Working',
   needs_review: 'Needs Review',
+  awaiting_approval: 'Awaiting Approval',
   completed: 'Completed',
   blocked: 'Blocked',
 }
@@ -48,33 +50,14 @@ function lifecycleIcon(status: AgentLifecycleStatus): IconName {
   if (status === 'working') return 'activity'
   if (status === 'completed') return 'check'
   if (status === 'needs_review') return 'approval'
+  if (status === 'awaiting_approval') return 'clock'
   if (status === 'blocked') return 'alert'
   return 'clock'
 }
 
-function MobileRuntimeControls({ state, viewModel, actions }: StaticShellProps) {
+function MobileRuntimeControls({ viewModel, actions }: StaticShellProps) {
   return (
     <div className={styles.mobileControls} aria-label="Mobile demo controls">
-      <div className={styles.mobileModeSelector} aria-label="Playback mode selection">
-        <button
-          type="button"
-          aria-pressed={state.mode === 'presenter'}
-          disabled={!viewModel.controls.canSelectPresenter}
-          onClick={() => actions.selectMode('presenter')}
-        >
-          <Icon name="user" size={17} aria-hidden="true" />
-          Presenter
-        </button>
-        <button
-          type="button"
-          aria-pressed={state.mode === 'auto'}
-          disabled={!viewModel.controls.canSelectAuto}
-          onClick={() => actions.selectMode('auto')}
-        >
-          <Icon name="bot" size={17} aria-hidden="true" />
-          Auto
-        </button>
-      </div>
       <div className={styles.mobileTransport} aria-label="Playback controls">
         <button type="button" disabled={!viewModel.controls.canStart} onClick={actions.start}>
           <Icon name="play" size={17} aria-hidden="true" /> Start
@@ -94,13 +77,6 @@ function MobileRuntimeControls({ state, viewModel, actions }: StaticShellProps) 
         </button>
         <button type="button" disabled={!viewModel.controls.canRestart} onClick={actions.restart}>
           <Icon name="refresh" size={17} aria-hidden="true" /> Restart
-        </button>
-        <button
-          type="button"
-          disabled={!viewModel.controls.canInjectFailure}
-          onClick={actions.injectFailure}
-        >
-          <Icon name="alert" size={17} aria-hidden="true" /> Inject Failure
         </button>
       </div>
     </div>
@@ -174,9 +150,10 @@ function CustomerStorySection({ viewModel }: Pick<StaticShellProps, 'viewModel'>
         <article className={`${styles.mobileMessage} ${styles.aiMessage}`}>
           <header><Icon name="bot" size={22} aria-hidden="true" /><strong>AI Resolution Officer</strong></header>
           <p>
-            Thank you, Rina. I’ve received your complaint and attachments. I’m
-            reviewing with the right systems and experts. I’ll keep you updated daily
-            until this is resolved.
+            Terima kasih, Bu Rina. Keluhan dan seluruh lampiran sudah kami
+            terima. Saya sedang mengarahkan pemeriksaan ke sistem dan agen
+            terkait. Kami akan memberikan pembaruan setiap hari sampai kasus
+            ini selesai.
           </p>
         </article>
       ) : null}
@@ -226,7 +203,7 @@ function TrustSection({ state, viewModel }: Pick<StaticShellProps, 'state' | 'vi
     <div className={styles.storyStack}>
       <ul className={styles.mobileMetrics} aria-label="Trust and observability metrics">
         <li><span>Current stage</span><strong>{stageIndex < 0 ? 'Idle' : `${stageIndex + 1} / 5`}</strong></li>
-        <li><span>Working agents</span><strong>{viewModel.activeAgentCount} / 4</strong></li>
+        <li><span>Specialist agents</span><strong>{viewModel.specialistsCompleted} / 4</strong></li>
         <li><span>Tool activity</span><strong>{viewModel.toolActivity}</strong></li>
         <li><span>Artifacts</span><strong>{viewModel.artifactsProduced}</strong></li>
       </ul>

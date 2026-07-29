@@ -9,11 +9,10 @@ import {
   SCENE_IDS,
   SYSTEM_IDS,
   type ApprovalStatus,
+  type ApproverIndex,
   type ArtifactId,
-  type ConflictStatus,
   type EventId,
-  type FailureStatus,
-  type RecoveryStatus,
+  type OfficerMode,
   type RuntimeCompletionAction,
   type RuntimeEntryEffect,
   type RuntimeEvent,
@@ -24,6 +23,7 @@ import {
   type RuntimeStateFixture,
   type RuntimeTimelineFixture,
   type SceneId,
+  type WorkflowStep,
 } from './types'
 
 type JsonRecord = Record<string, unknown>
@@ -33,27 +33,24 @@ const PLAYBACK_STATUSES = [
   'running',
   'paused',
   'waiting_approval',
-  'failed',
-  'recovering',
   'completed',
 ] as const
 const COMPLETION_ACTIONS = [
   'advance',
   'pause',
   'wait_for_approval',
-  'wait_for_failure_injection',
-  'inject_failure_and_advance',
   'complete',
 ] as const
-const CONFLICT_STATUSES = ['neutral', 'active', 'resolved'] as const
 const APPROVAL_STATUSES = [
   'not_required',
   'pending',
   'approved',
   'rejected',
 ] as const
-const FAILURE_STATUSES = ['not_injected', 'active', 'recovered'] as const
-const RECOVERY_STATUSES = ['not_started', 'recovering', 'completed'] as const
+const OFFICER_MODES = ['standby', 'active'] as const
+const WORKFLOW_STEPS = [0, 1, 2, 3, 4] as const
+const APPROVER_COUNTS = [0, 1, 2, 3, 4] as const
+const APPROVER_INDICES = [1, 2, 3, 4] as const
 const STATE_KEYS = [
   'mode',
   'playbackStatus',
@@ -65,11 +62,12 @@ const STATE_KEYS = [
   'availableArtifactIds',
   'activeAgentIds',
   'activeSystemIds',
-  'conflictStatus',
+  'activeSpecialistAgentId',
+  'officerMode',
+  'workflowStep',
+  'approversCompleted',
+  'customerResponseSent',
   'approvalStatus',
-  'failureStatus',
-  'recoveryStatus',
-  'recommendationVisible',
   'timerActive',
 ] as const
 const PROHIBITED_DATA_KEYS = new Set([
@@ -128,6 +126,17 @@ function readLiteral<T extends string>(
   return value as T
 }
 
+function readNumberLiteral<T extends number>(
+  value: unknown,
+  allowed: readonly T[],
+  path: string,
+): T {
+  if (typeof value !== 'number' || !allowed.includes(value as T)) {
+    fail(path, `expected one of ${allowed.join(', ')}`)
+  }
+  return value as T
+}
+
 function readIdArray<T extends string>(
   value: unknown,
   allowed: readonly T[],
@@ -178,11 +187,9 @@ function validateEntryEffect(
 
   switch (type) {
     case 'show_customer_context':
-    case 'synchronize_investigation':
+    case 'return_to_officer':
+    case 'send_customer_response':
     case 'hold_state':
-    case 'show_resolution_plan':
-    case 'show_failure_injection_cue':
-    case 'finalize_metrics':
     case 'hold_final_state':
       assertExactKeys(record, ['type'], path)
       return { type }
@@ -207,11 +214,19 @@ function validateEntryEffect(
         type,
         artifactId: readLiteral(record.artifactId, ARTIFACT_IDS, `${path}.artifactId`),
       }
-    case 'set_conflict_status':
-      assertExactKeys(record, ['type', 'value'], path)
+    case 'set_active_specialist': {
+      assertExactKeys(record, ['type', 'agentId'], path)
+      const agentId =
+        record.agentId === null
+          ? null
+          : readLiteral(record.agentId, AGENT_IDS, `${path}.agentId`)
+      return { type, agentId }
+    }
+    case 'set_workflow_step':
+      assertExactKeys(record, ['type', 'step'], path)
       return {
         type,
-        value: readLiteral(record.value, ['active', 'resolved'] as const, `${path}.value`),
+        step: readNumberLiteral(record.step, WORKFLOW_STEPS, `${path}.step`),
       }
     case 'set_approval_status':
       assertExactKeys(record, ['type', 'value'], path)
@@ -226,24 +241,12 @@ function validateEntryEffect(
         artifactId: readLiteral(record.artifactId, ARTIFACT_IDS, `${path}.artifactId`),
         value: readLiteral(record.value, ['approved'] as const, `${path}.value`),
       }
-    case 'set_failure_status':
-      assertExactKeys(record, ['type', 'value'], path)
+    case 'advance_approver':
+      assertExactKeys(record, ['type', 'index'], path)
       return {
         type,
-        value: readLiteral(record.value, ['active', 'recovered'] as const, `${path}.value`),
+        index: readNumberLiteral(record.index, APPROVER_INDICES, `${path}.index`),
       }
-    case 'set_recovery_status':
-      assertExactKeys(record, ['type', 'value'], path)
-      return {
-        type,
-        value: readLiteral(record.value, ['recovering', 'completed'] as const, `${path}.value`),
-      }
-    case 'set_recommendation_visible': {
-      assertExactKeys(record, ['type', 'value'], path)
-      const visible = readBoolean(record.value, `${path}.value`)
-      if (!visible) fail(`${path}.value`, 'must be true')
-      return { type, value: true }
-    }
     default:
       return fail(path, `unsupported effect type ${type satisfies never}`)
   }
@@ -257,11 +260,12 @@ function validateExpectedState(value: unknown, path: string): RuntimeMomentExpec
       'playbackStatus',
       'activeAgentIds',
       'activeSystemIds',
-      'conflictStatus',
+      'activeSpecialistAgentId',
+      'officerMode',
+      'workflowStep',
+      'approversCompleted',
+      'customerResponseSent',
       'approvalStatus',
-      'failureStatus',
-      'recoveryStatus',
-      'recommendationVisible',
       'toolActivity',
       'artifactsProduced',
     ],
@@ -275,30 +279,38 @@ function validateExpectedState(value: unknown, path: string): RuntimeMomentExpec
     ) as RuntimePlaybackStatus,
     activeAgentIds: readIdArray(record.activeAgentIds, AGENT_IDS, `${path}.activeAgentIds`),
     activeSystemIds: readIdArray(record.activeSystemIds, SYSTEM_IDS, `${path}.activeSystemIds`),
-    conflictStatus: readLiteral(
-      record.conflictStatus,
-      CONFLICT_STATUSES,
-      `${path}.conflictStatus`,
-    ) as ConflictStatus,
+    activeSpecialistAgentId:
+      record.activeSpecialistAgentId === null
+        ? null
+        : readLiteral(
+            record.activeSpecialistAgentId,
+            AGENT_IDS,
+            `${path}.activeSpecialistAgentId`,
+          ),
+    officerMode: readLiteral(
+      record.officerMode,
+      OFFICER_MODES,
+      `${path}.officerMode`,
+    ) as OfficerMode,
+    workflowStep: readNumberLiteral(
+      record.workflowStep,
+      WORKFLOW_STEPS,
+      `${path}.workflowStep`,
+    ) as WorkflowStep,
+    approversCompleted: readNumberLiteral(
+      record.approversCompleted,
+      APPROVER_COUNTS,
+      `${path}.approversCompleted`,
+    ),
+    customerResponseSent: readBoolean(
+      record.customerResponseSent,
+      `${path}.customerResponseSent`,
+    ),
     approvalStatus: readLiteral(
       record.approvalStatus,
       APPROVAL_STATUSES,
       `${path}.approvalStatus`,
     ) as ApprovalStatus,
-    failureStatus: readLiteral(
-      record.failureStatus,
-      FAILURE_STATUSES,
-      `${path}.failureStatus`,
-    ) as FailureStatus,
-    recoveryStatus: readLiteral(
-      record.recoveryStatus,
-      RECOVERY_STATUSES,
-      `${path}.recoveryStatus`,
-    ) as RecoveryStatus,
-    recommendationVisible: readBoolean(
-      record.recommendationVisible,
-      `${path}.recommendationVisible`,
-    ),
     toolActivity: readNumber(record.toolActivity, `${path}.toolActivity`),
     artifactsProduced: readNumber(record.artifactsProduced, `${path}.artifactsProduced`),
   }
@@ -325,25 +337,6 @@ function validateApprovalGate(value: unknown, path: string): RuntimeMoment['appr
   }
 }
 
-function validateFailureGate(value: unknown, path: string): RuntimeMoment['failureGate'] {
-  if (value === null) return null
-  const record = readRecord(value, path)
-  assertExactKeys(record, ['action', 'continuationMomentId', 'failureCode'], path)
-  return {
-    action: readLiteral(record.action, ['inject_failure'] as const, `${path}.action`),
-    continuationMomentId: readLiteral(
-      record.continuationMomentId,
-      MOMENT_IDS,
-      `${path}.continuationMomentId`,
-    ),
-    failureCode: readLiteral(
-      record.failureCode,
-      ['CONTRACTOR_REJECTED'] as const,
-      `${path}.failureCode`,
-    ),
-  }
-}
-
 function validateMoment(value: unknown, path: string): RuntimeMoment {
   const record = readRecord(value, path)
   assertExactKeys(
@@ -361,7 +354,6 @@ function validateMoment(value: unknown, path: string): RuntimeMoment {
       'visibleEventIds',
       'availableArtifactIds',
       'approvalGate',
-      'failureGate',
       'completion',
       'expected',
     ],
@@ -390,7 +382,6 @@ function validateMoment(value: unknown, path: string): RuntimeMoment {
       `${path}.availableArtifactIds`,
     ),
     approvalGate: validateApprovalGate(record.approvalGate, `${path}.approvalGate`),
-    failureGate: validateFailureGate(record.failureGate, `${path}.failureGate`),
     completion: {
       presenter: readLiteral(
         completion.presenter,
@@ -450,29 +441,37 @@ function validateStateFixture(value: unknown, path: string): RuntimeStateFixture
     ),
     activeAgentIds: readIdArray(record.activeAgentIds, AGENT_IDS, `${path}.activeAgentIds`),
     activeSystemIds: readIdArray(record.activeSystemIds, SYSTEM_IDS, `${path}.activeSystemIds`),
-    conflictStatus: readLiteral(
-      record.conflictStatus,
-      CONFLICT_STATUSES,
-      `${path}.conflictStatus`,
+    activeSpecialistAgentId:
+      record.activeSpecialistAgentId === null
+        ? null
+        : readLiteral(
+            record.activeSpecialistAgentId,
+            AGENT_IDS,
+            `${path}.activeSpecialistAgentId`,
+          ),
+    officerMode: readLiteral(
+      record.officerMode,
+      OFFICER_MODES,
+      `${path}.officerMode`,
+    ) as OfficerMode,
+    workflowStep: readNumberLiteral(
+      record.workflowStep,
+      WORKFLOW_STEPS,
+      `${path}.workflowStep`,
+    ) as WorkflowStep,
+    approversCompleted: readNumberLiteral(
+      record.approversCompleted,
+      APPROVER_COUNTS,
+      `${path}.approversCompleted`,
+    ),
+    customerResponseSent: readBoolean(
+      record.customerResponseSent,
+      `${path}.customerResponseSent`,
     ),
     approvalStatus: readLiteral(
       record.approvalStatus,
       APPROVAL_STATUSES,
       `${path}.approvalStatus`,
-    ),
-    failureStatus: readLiteral(
-      record.failureStatus,
-      FAILURE_STATUSES,
-      `${path}.failureStatus`,
-    ),
-    recoveryStatus: readLiteral(
-      record.recoveryStatus,
-      RECOVERY_STATUSES,
-      `${path}.recoveryStatus`,
-    ),
-    recommendationVisible: readBoolean(
-      record.recommendationVisible,
-      `${path}.recommendationVisible`,
     ),
     timerActive: readBoolean(record.timerActive, `${path}.timerActive`),
   }
@@ -523,15 +522,12 @@ function validateScenario(value: unknown): RuntimeFixtureBundle['scenario'] {
   assertArrayEqual(stages, RUNTIME_STAGES, 'scenario.stages')
   const scenes = root.scenes.map((entry, index) => {
     const record = readRecord(entry, `scenario.scenes[${index}]`)
-    const hasFailureCode = Object.hasOwn(record, 'failureCode')
     assertExactKeys(
       record,
-      hasFailureCode
-        ? ['id', 'stage', 'presenterPause', 'failureCode']
-        : ['id', 'stage', 'presenterPause'],
+      ['id', 'stage', 'presenterPause'],
       `scenario.scenes[${index}]`,
     )
-    const scene = {
+    return {
       id: readLiteral(record.id, SCENE_IDS, `scenario.scenes[${index}].id`),
       stage: readNumber(record.stage, `scenario.scenes[${index}].stage`),
       presenterPause: readBoolean(
@@ -539,16 +535,6 @@ function validateScenario(value: unknown): RuntimeFixtureBundle['scenario'] {
         `scenario.scenes[${index}].presenterPause`,
       ),
     }
-    return hasFailureCode
-      ? {
-          ...scene,
-          failureCode: readLiteral(
-            record.failureCode,
-            ['CONTRACTOR_REJECTED'] as const,
-            `scenario.scenes[${index}].failureCode`,
-          ),
-        }
-      : scene
   })
   assertArrayEqual(scenes.map((scene) => scene.id), SCENE_IDS, 'scenario scene IDs')
   return {
@@ -573,7 +559,6 @@ function validateTimeline(
       'eventRevealOrder',
       'catalog',
       'approval',
-      'failureRecovery',
       'recommendation',
       'artifactAvailabilityRules',
       'moments',
@@ -591,7 +576,14 @@ function validateTimeline(
   const approval = readRecord(root.approval, 'timeline.approval')
   assertExactKeys(
     approval,
-    ['gateMomentId', 'approvedMomentId', 'continuationMomentId', 'copy', 'numericAmountAllowed'],
+    [
+      'gateMomentId',
+      'approvedMomentId',
+      'continuationMomentId',
+      'copy',
+      'numericAmountAllowed',
+      'approvers',
+    ],
     'timeline.approval',
   )
   const numericAmountAllowed = readBoolean(
@@ -600,20 +592,29 @@ function validateTimeline(
   )
   if (numericAmountAllowed) fail('timeline.approval.numericAmountAllowed', 'must be false')
 
-  const failureRecovery = readRecord(root.failureRecovery, 'timeline.failureRecovery')
-  assertExactKeys(
-    failureRecovery,
-    [
-      'cueMomentId',
-      'failureMomentId',
-      'recoveringMomentId',
-      'recoveredMomentId',
-      'failureCode',
-      'failureCopy',
-      'recoveryCopy',
-    ],
-    'timeline.failureRecovery',
-  )
+  if (!Array.isArray(approval.approvers)) {
+    fail('timeline.approval.approvers', 'expected an array')
+  }
+  const approvers = approval.approvers.map((entry, index) => {
+    const path = `timeline.approval.approvers[${index}]`
+    const record = readRecord(entry, path)
+    assertExactKeys(record, ['index', 'name', 'role', 'momentId'], path)
+    return {
+      index: readNumberLiteral(record.index, APPROVER_INDICES, `${path}.index`) as ApproverIndex,
+      name: readString(record.name, `${path}.name`),
+      role: readString(record.role, `${path}.role`),
+      momentId: readLiteral(record.momentId, MOMENT_IDS, `${path}.momentId`),
+    }
+  })
+  if (approvers.length !== 4) {
+    fail('timeline.approval.approvers', 'must contain exactly 4 approvers')
+  }
+  approvers.forEach((approver, index) => {
+    if (approver.index !== index + 1) {
+      fail(`timeline.approval.approvers[${index}].index`, `must equal ${index + 1}`)
+    }
+  })
+
   const recommendation = readRecord(root.recommendation, 'timeline.recommendation')
   assertExactKeys(recommendation, ['availableAtMomentId', 'copy'], 'timeline.recommendation')
 
@@ -705,7 +706,7 @@ function validateTimeline(
     fail('timeline.totalScheduledSeconds', 'must equal 600')
   }
   if (scenario.totalDurationSeconds !== 600) fail('scenario.totalDurationSeconds', 'must equal 600')
-  const expectedSceneTotals = [90, 150, 90, 90, 90, 90]
+  const expectedSceneTotals = [6, 166, 323, 60, 45]
   SCENE_IDS.forEach((sceneId, index) => {
     if (sceneTotals.get(sceneId) !== expectedSceneTotals[index]) {
       fail(`timeline scene total ${sceneId}`, `must equal ${expectedSceneTotals[index]}`)
@@ -746,35 +747,7 @@ function validateTimeline(
       ),
       copy: readString(approval.copy, 'timeline.approval.copy'),
       numericAmountAllowed: false,
-    },
-    failureRecovery: {
-      cueMomentId: readLiteral(
-        failureRecovery.cueMomentId,
-        MOMENT_IDS,
-        'timeline.failureRecovery.cueMomentId',
-      ),
-      failureMomentId: readLiteral(
-        failureRecovery.failureMomentId,
-        MOMENT_IDS,
-        'timeline.failureRecovery.failureMomentId',
-      ),
-      recoveringMomentId: readLiteral(
-        failureRecovery.recoveringMomentId,
-        MOMENT_IDS,
-        'timeline.failureRecovery.recoveringMomentId',
-      ),
-      recoveredMomentId: readLiteral(
-        failureRecovery.recoveredMomentId,
-        MOMENT_IDS,
-        'timeline.failureRecovery.recoveredMomentId',
-      ),
-      failureCode: readLiteral(
-        failureRecovery.failureCode,
-        ['CONTRACTOR_REJECTED'] as const,
-        'timeline.failureRecovery.failureCode',
-      ),
-      failureCopy: readString(failureRecovery.failureCopy, 'timeline.failureRecovery.failureCopy'),
-      recoveryCopy: readString(failureRecovery.recoveryCopy, 'timeline.failureRecovery.recoveryCopy'),
+      approvers,
     },
     recommendation: {
       availableAtMomentId: readLiteral(
@@ -796,11 +769,12 @@ function assertInitialState(state: RuntimeStateFixture) {
     state.currentMomentId !== null ||
     state.elapsedSeconds !== 0 ||
     state.remainingSeconds !== null ||
-    state.conflictStatus !== 'neutral' ||
     state.approvalStatus !== 'not_required' ||
-    state.failureStatus !== 'not_injected' ||
-    state.recoveryStatus !== 'not_started' ||
-    state.recommendationVisible ||
+    state.activeSpecialistAgentId !== null ||
+    state.officerMode !== 'standby' ||
+    state.workflowStep !== 0 ||
+    state.approversCompleted !== 0 ||
+    state.customerResponseSent ||
     state.timerActive
   ) {
     fail('initialState', 'does not match the authoritative initial scalar contract')
@@ -820,14 +794,14 @@ function assertFinalState(state: RuntimeStateFixture) {
   if (
     state.mode !== 'presenter' ||
     state.playbackStatus !== 'completed' ||
-    state.currentMomentId !== 'M21' ||
+    state.currentMomentId !== 'M33' ||
     state.elapsedSeconds !== 600 ||
     state.remainingSeconds !== 0 ||
-    state.conflictStatus !== 'resolved' ||
     state.approvalStatus !== 'approved' ||
-    state.failureStatus !== 'recovered' ||
-    state.recoveryStatus !== 'completed' ||
-    !state.recommendationVisible ||
+    state.workflowStep !== 4 ||
+    state.approversCompleted !== 4 ||
+    !state.customerResponseSent ||
+    state.officerMode !== 'standby' ||
     state.timerActive
   ) {
     fail('finalState', 'does not match the authoritative final scalar contract')

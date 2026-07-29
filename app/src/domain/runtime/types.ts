@@ -3,25 +3,20 @@ import type {
   ApprovalStatus,
   ArtifactId,
   DemoMode,
+  OfficerMode,
   RuntimeMoment,
   RuntimePlaybackStatus,
   RuntimeStage,
   RuntimeStateFixture,
   SceneId,
+  WorkflowStep,
 } from '../runtime-fixtures/types'
 
-export type RuntimeDomainPlaybackStatus =
-  | RuntimePlaybackStatus
-  | 'waiting_failure_injection'
+export type RuntimeDomainPlaybackStatus = RuntimePlaybackStatus
 
 export type TerminalOutcome = 'unresolved' | 'approved' | 'escalated'
 
-export type RuntimeState = Omit<
-  RuntimeStateFixture,
-  'playbackStatus' | 'approvalStatus'
-> & {
-  readonly playbackStatus: RuntimeDomainPlaybackStatus
-  readonly approvalStatus: ApprovalStatus
+export type RuntimeState = RuntimeStateFixture & {
   readonly terminalOutcome: TerminalOutcome
 }
 
@@ -33,7 +28,6 @@ export type RuntimeAction =
   | { readonly type: 'NEXT_MOMENT' }
   | { readonly type: 'APPROVE' }
   | { readonly type: 'REJECT' }
-  | { readonly type: 'INJECT_FAILURE' }
   | { readonly type: 'ADVANCE_TIME'; readonly seconds: number }
   | { readonly type: 'RESTART' }
 
@@ -43,7 +37,6 @@ export interface RuntimeControlAvailability {
   readonly canResume: boolean
   readonly canNextMoment: boolean
   readonly canRestart: boolean
-  readonly canInjectFailure: boolean
   readonly canApprove: boolean
   readonly canReject: boolean
   readonly canSelectPresenter: boolean
@@ -69,9 +62,8 @@ export interface ArtifactPresentation {
 export type RuntimeContext =
   | { readonly type: 'neutral'; readonly copy: null }
   | { readonly type: 'approval'; readonly copy: string }
-  | { readonly type: 'failure'; readonly copy: string }
-  | { readonly type: 'recovery'; readonly copy: string }
-  | { readonly type: 'recovered'; readonly copy: string }
+  | { readonly type: 'approving'; readonly copy: string }
+  | { readonly type: 'resolution'; readonly copy: string }
   | { readonly type: 'recommendation'; readonly copy: string }
 
 export interface RuntimeTimerPresentation {
@@ -112,6 +104,7 @@ export type AgentLifecycleStatus =
   | 'waiting'
   | 'working'
   | 'needs_review'
+  | 'awaiting_approval'
   | 'completed'
   | 'blocked'
 
@@ -128,12 +121,13 @@ export interface NowNextPresentation {
 export type RuntimeFocusTarget =
   | 'customer-panel'
   | AgentId
+  | 'officer'
   | 'approval'
   | 'resolution'
   | null
 
 export interface DecisionRationalePresentation {
-  readonly agentId: AgentId
+  readonly agentId: AgentId | 'officer'
   readonly state: 'working' | 'result' | 'blocked'
   readonly title: string
   readonly bullets: readonly string[]
@@ -191,7 +185,13 @@ export interface RuntimeViewModel {
   readonly artifacts: readonly ArtifactPresentation[]
   readonly artifactsProduced: number
   readonly activeAgentCount: number
-  readonly conflictStatus: RuntimeState['conflictStatus']
+  readonly specialistsCompleted: number
+  readonly activeSpecialistAgentId: AgentId | null
+  readonly officerMode: OfficerMode
+  readonly workflowStep: WorkflowStep
+  readonly approversCompleted: 0 | 1 | 2 | 3 | 4
+  readonly customerResponseSent: boolean
+  readonly approvalStatus: ApprovalStatus
   readonly context: RuntimeContext
   readonly earlyStory: EarlyStoryPresentation
   readonly agentLifecycle: readonly AgentLifecyclePresentation[]

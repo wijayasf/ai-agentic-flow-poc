@@ -20,6 +20,18 @@ export const MOMENT_IDS = [
   'M19',
   'M20',
   'M21',
+  'M22',
+  'M23',
+  'M24',
+  'M25',
+  'M26',
+  'M27',
+  'M28',
+  'M29',
+  'M30',
+  'M31',
+  'M32',
+  'M33',
 ] as const
 
 export const EVENT_IDS = [
@@ -35,28 +47,42 @@ export const EVENT_IDS = [
   'evt-10',
   'evt-11',
   'evt-12',
+  'evt-13',
+  'evt-14',
+  'evt-15',
+  'evt-16',
+  'evt-17',
+  'evt-18',
+  'evt-19',
 ] as const
 
 export const EVENT_REVEAL_ORDER = [
   'evt-1',
   'evt-2',
-  'evt-6',
   'evt-3',
-  'evt-7',
   'evt-4',
-  'evt-8',
   'evt-5',
+  'evt-6',
+  'evt-7',
+  'evt-8',
   'evt-9',
   'evt-10',
   'evt-11',
   'evt-12',
+  'evt-13',
+  'evt-14',
+  'evt-15',
+  'evt-16',
+  'evt-17',
+  'evt-18',
+  'evt-19',
 ] as const
 
 export const ARTIFACT_IDS = [
-  'artifact-summary',
-  'artifact-conflict',
-  'artifact-approval',
-  'artifact-prevention',
+  'artifact-complaint',
+  'artifact-policy',
+  'artifact-workflow',
+  'artifact-finance',
 ] as const
 
 export const AGENT_IDS = [
@@ -76,16 +102,15 @@ export const SYSTEM_IDS = [
 export const SCENE_IDS = [
   'scene-intake',
   'scene-investigation',
-  'scene-conflict',
+  'scene-workflow',
   'scene-approval',
-  'scene-failure-recovery',
   'scene-resolution',
 ] as const
 
 export const RUNTIME_STAGES = [
   'Intake',
   'Investigation',
-  'Conflict',
+  'Workflow',
   'Approval',
   'Resolution',
 ] as const
@@ -96,17 +121,14 @@ export const APPROVED_EFFECT_TYPES = [
   'set_active_systems',
   'reveal_event',
   'make_artifact_available',
-  'synchronize_investigation',
-  'set_conflict_status',
-  'hold_state',
-  'show_resolution_plan',
+  'set_active_specialist',
+  'return_to_officer',
+  'set_workflow_step',
   'set_approval_status',
   'set_artifact_status',
-  'show_failure_injection_cue',
-  'set_failure_status',
-  'set_recovery_status',
-  'set_recommendation_visible',
-  'finalize_metrics',
+  'advance_approver',
+  'send_customer_response',
+  'hold_state',
   'hold_final_state',
 ] as const
 
@@ -125,20 +147,16 @@ export type RuntimePlaybackStatus =
   | 'running'
   | 'paused'
   | 'waiting_approval'
-  | 'failed'
-  | 'recovering'
   | 'completed'
 export type RuntimeCompletionAction =
   | 'advance'
   | 'pause'
   | 'wait_for_approval'
-  | 'wait_for_failure_injection'
-  | 'inject_failure_and_advance'
   | 'complete'
-export type ConflictStatus = 'neutral' | 'active' | 'resolved'
 export type ApprovalStatus = 'not_required' | 'pending' | 'approved' | 'rejected'
-export type FailureStatus = 'not_injected' | 'active' | 'recovered'
-export type RecoveryStatus = 'not_started' | 'recovering' | 'completed'
+export type OfficerMode = 'standby' | 'active'
+export type WorkflowStep = 0 | 1 | 2 | 3 | 4
+export type ApproverIndex = 1 | 2 | 3 | 4
 
 export type RuntimeEntryEffect =
   | { readonly type: 'show_customer_context' }
@@ -146,21 +164,18 @@ export type RuntimeEntryEffect =
   | { readonly type: 'set_active_systems'; readonly systemIds: readonly SystemId[] }
   | { readonly type: 'reveal_event'; readonly eventId: EventId }
   | { readonly type: 'make_artifact_available'; readonly artifactId: ArtifactId }
-  | { readonly type: 'synchronize_investigation' }
-  | { readonly type: 'set_conflict_status'; readonly value: 'active' | 'resolved' }
-  | { readonly type: 'hold_state' }
-  | { readonly type: 'show_resolution_plan' }
+  | { readonly type: 'set_active_specialist'; readonly agentId: AgentId | null }
+  | { readonly type: 'return_to_officer' }
+  | { readonly type: 'set_workflow_step'; readonly step: WorkflowStep }
   | { readonly type: 'set_approval_status'; readonly value: 'pending' | 'approved' }
   | {
       readonly type: 'set_artifact_status'
       readonly artifactId: ArtifactId
       readonly value: 'approved'
     }
-  | { readonly type: 'show_failure_injection_cue' }
-  | { readonly type: 'set_failure_status'; readonly value: 'active' | 'recovered' }
-  | { readonly type: 'set_recovery_status'; readonly value: 'recovering' | 'completed' }
-  | { readonly type: 'set_recommendation_visible'; readonly value: true }
-  | { readonly type: 'finalize_metrics' }
+  | { readonly type: 'advance_approver'; readonly index: ApproverIndex }
+  | { readonly type: 'send_customer_response' }
+  | { readonly type: 'hold_state' }
   | { readonly type: 'hold_final_state' }
 
 export interface RuntimeEvent {
@@ -176,11 +191,12 @@ export interface RuntimeMomentExpectedState {
   readonly playbackStatus: RuntimePlaybackStatus
   readonly activeAgentIds: readonly AgentId[]
   readonly activeSystemIds: readonly SystemId[]
-  readonly conflictStatus: ConflictStatus
+  readonly activeSpecialistAgentId: AgentId | null
+  readonly officerMode: OfficerMode
+  readonly workflowStep: WorkflowStep
+  readonly approversCompleted: 0 | 1 | 2 | 3 | 4
+  readonly customerResponseSent: boolean
   readonly approvalStatus: ApprovalStatus
-  readonly failureStatus: FailureStatus
-  readonly recoveryStatus: RecoveryStatus
-  readonly recommendationVisible: boolean
   readonly toolActivity: number
   readonly artifactsProduced: number
 }
@@ -202,11 +218,6 @@ export interface RuntimeMoment {
     readonly continuationMomentId: MomentId
     readonly copy: string
   }
-  readonly failureGate: null | {
-    readonly action: 'inject_failure'
-    readonly continuationMomentId: MomentId
-    readonly failureCode: 'CONTRACTOR_REJECTED'
-  }
   readonly completion: {
     readonly presenter: RuntimeCompletionAction
     readonly auto: RuntimeCompletionAction
@@ -225,12 +236,20 @@ export interface RuntimeStateFixture {
   readonly availableArtifactIds: readonly ArtifactId[]
   readonly activeAgentIds: readonly AgentId[]
   readonly activeSystemIds: readonly SystemId[]
-  readonly conflictStatus: ConflictStatus
+  readonly activeSpecialistAgentId: AgentId | null
+  readonly officerMode: OfficerMode
+  readonly workflowStep: WorkflowStep
+  readonly approversCompleted: 0 | 1 | 2 | 3 | 4
+  readonly customerResponseSent: boolean
   readonly approvalStatus: ApprovalStatus
-  readonly failureStatus: FailureStatus
-  readonly recoveryStatus: RecoveryStatus
-  readonly recommendationVisible: boolean
   readonly timerActive: boolean
+}
+
+export interface ApproverDefinition {
+  readonly index: ApproverIndex
+  readonly name: string
+  readonly role: string
+  readonly momentId: MomentId
 }
 
 export interface RuntimeTimelineFixture {
@@ -248,15 +267,7 @@ export interface RuntimeTimelineFixture {
     readonly continuationMomentId: MomentId
     readonly copy: string
     readonly numericAmountAllowed: false
-  }
-  readonly failureRecovery: {
-    readonly cueMomentId: MomentId
-    readonly failureMomentId: MomentId
-    readonly recoveringMomentId: MomentId
-    readonly recoveredMomentId: MomentId
-    readonly failureCode: 'CONTRACTOR_REJECTED'
-    readonly failureCopy: string
-    readonly recoveryCopy: string
+    readonly approvers: readonly ApproverDefinition[]
   }
   readonly recommendation: {
     readonly availableAtMomentId: MomentId
@@ -291,7 +302,6 @@ export interface RuntimeFixtureBundle {
       readonly id: SceneId
       readonly stage: number
       readonly presenterPause: boolean
-      readonly failureCode?: 'CONTRACTOR_REJECTED'
     }>
   }
   readonly timeline: RuntimeTimelineFixture

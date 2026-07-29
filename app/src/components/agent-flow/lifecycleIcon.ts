@@ -9,6 +9,8 @@ export function lifecycleIcon(status: AgentLifecycleStatus): IconName {
       return 'activity'
     case 'needs_review':
       return 'approval'
+    case 'awaiting_approval':
+      return 'clock'
     case 'completed':
       return 'check'
     case 'blocked':

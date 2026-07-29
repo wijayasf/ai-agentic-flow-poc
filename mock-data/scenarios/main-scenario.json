@@ -1,10 +1,10 @@
 {
-  "id": "main-complaint-resolution",
+  "id": "sequential-agentic-case-officer",
   "totalDurationSeconds": 600,
   "stages": [
     "Intake",
     "Investigation",
-    "Conflict",
+    "Workflow",
     "Approval",
     "Resolution"
   ],
@@ -20,20 +20,14 @@
       "presenterPause": false
     },
     {
-      "id": "scene-conflict",
+      "id": "scene-workflow",
       "stage": 2,
-      "presenterPause": true
+      "presenterPause": false
     },
     {
       "id": "scene-approval",
       "stage": 3,
       "presenterPause": true
-    },
-    {
-      "id": "scene-failure-recovery",
-      "stage": 3,
-      "failureCode": "CONTRACTOR_REJECTED",
-      "presenterPause": false
     },
     {
       "id": "scene-resolution",

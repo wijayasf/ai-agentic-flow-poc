@@ -27,13 +27,14 @@ function createActions(): RuntimeControllerActions {
     restart: vi.fn(),
     approve: vi.fn(),
     reject: vi.fn(),
-    injectFailure: vi.fn(),
   }
 }
 
 function autoAtApprovalGate(): RuntimeState {
   const started = transitionRuntimeState(createInitialRuntimeState('auto'), { type: 'START' })
-  return transitionRuntimeState(started, { type: 'ADVANCE_TIME', seconds: 390 })
+  // Approval gate is M25 (t=495, dur=20). waiting_approval fires after M25
+  // completes at elapsed=515.
+  return transitionRuntimeState(started, { type: 'ADVANCE_TIME', seconds: 520 })
 }
 
 function renderResponsive(state = createInitialRuntimeState(), actions = createActions()) {
@@ -74,7 +75,7 @@ describe('ResponsiveDemoShell', () => {
     fireEvent.click(toggle)
     expect(screen.getByTestId('presenter-assist-surface')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Presenter Assist' })).toBeInTheDocument()
-    expect(screen.getByText('This demo shows how specialized AI agents collaborate across a controlled enterprise workflow.')).toBeInTheDocument()
+    expect(screen.getByText('This demo shows how the AI Agentic Case Officer coordinates specialist agents through a deterministic case resolution flow.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled()
     Object.values(actions).forEach((action) => expect(action).not.toHaveBeenCalled())
 
@@ -160,7 +161,9 @@ describe('ResponsiveDemoShell', () => {
   it('renders progressive customer content from the shared runtime view model', () => {
     setViewport(375, 812)
     const started = transitionRuntimeState(createInitialRuntimeState('auto'), { type: 'START' })
-    const evidence = transitionRuntimeState(started, { type: 'ADVANCE_TIME', seconds: 5 })
+    // EARLY_STORY_SECONDS: handoverAgreement=3, paymentReceipt=4. At t=3 only
+    // leakage + handover are visible, payment receipt has not yet appeared.
+    const evidence = transitionRuntimeState(started, { type: 'ADVANCE_TIME', seconds: 3 })
     renderResponsive(evidence)
     fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
 
@@ -177,7 +180,9 @@ describe('ResponsiveDemoShell', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Human Approval/ }))
 
     expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
-    expect(screen.getByText('Rp31,000,000')).toBeInTheDocument()
+    // Compensation amount is kept internal until enterprise approval completes;
+    // the gate surface only shows the qualitative impact statement.
+    expect(screen.getByText('Compensation approved once workflow completes')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
     fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
     expect(actions.approve).toHaveBeenCalledTimes(1)

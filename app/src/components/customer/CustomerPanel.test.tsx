@@ -47,13 +47,13 @@ describe('CustomerPanel — canonical intake sequence (product decision)', () =>
     ).not.toBeInTheDocument()
   })
 
-  it('mounts the officer acknowledgement immediately at t=9s WITHOUT High Priority, Daily Update Promise, or Verified badge', () => {
-    renderCustomer(autoAt(9))
+  it('mounts the officer acknowledgement immediately at t=14s WITHOUT High Priority, Daily Update Promise, or Verified badge', () => {
+    renderCustomer(autoAt(14))
     const officerCard = screen.getByRole('article', {
       name: 'AI Resolution Officer',
     })
     // Acknowledgement message body must be present.
-    expect(within(officerCard).getByText(/Thank you, Rina/)).toBeInTheDocument()
+    expect(within(officerCard).getByText(/Terima kasih, Bu Rina/)).toBeInTheDocument()
     // But nothing that would imply intake has finished:
     expect(within(officerCard).queryByText('High Priority')).not.toBeInTheDocument()
     expect(within(officerCard).queryByText('Daily Update Promise')).not.toBeInTheDocument()
@@ -70,7 +70,7 @@ describe('CustomerPanel — canonical intake sequence (product decision)', () =>
   })
 
   it('preserves the header → message → cursor progressive reveal on the early acknowledgement', () => {
-    renderCustomer(autoAt(9))
+    renderCustomer(autoAt(14))
     const officerCard = screen.getByRole('article', {
       name: 'AI Resolution Officer',
     })
@@ -128,18 +128,19 @@ describe('CustomerPanel — canonical intake sequence (product decision)', () =>
     const officerCard = screen.getByRole('article', {
       name: 'AI Resolution Officer',
     })
-    expect(within(officerCard).getByText(/Thank you, Rina/)).toBeInTheDocument()
+    expect(within(officerCard).getByText(/Terima kasih, Bu Rina/)).toBeInTheDocument()
     expect(
       within(officerCard).getByText(
-        /reviewing with the right systems and experts/,
+        /mengarahkan pemeriksaan ke sistem dan agen terkait/,
       ),
     ).toBeInTheDocument()
   })
 
-  it('parallel investigation has not begun at the instant the intake footer appears', () => {
-    const state = autoAt(60)
+  it('other specialists remain waiting at the instant the Complaint Agent finishes', () => {
+    // M08 (t=19) sets active_specialist=null after Complaint Agent completes;
+    // policy dispatch happens at M09 (t=22). Sample the gap between them.
+    const state = autoAt(20)
     const vm = selectRuntimeViewModel(state)
-    expect(vm.currentStage).toBe('Intake')
     const customer = vm.agentLifecycle.find(
       (a) => a.agentId === 'agent-customer-complaint',
     )

@@ -2,47 +2,47 @@
   "events": [
     {
       "id": "evt-1",
-      "time": "09:16:12",
-      "agent": "Customer Complaint Agent",
-      "action": "Customer matched",
-      "skill": "Entity resolution",
-      "output": "Customer verified: Rina Putri"
+      "time": "09:15:00",
+      "agent": "Customer",
+      "action": "Complaint received",
+      "skill": "Case intake",
+      "output": "Complaint text received from Bu Rina"
     },
     {
       "id": "evt-2",
-      "time": "09:16:45",
-      "agent": "Customer Complaint Agent",
-      "action": "Evidence analyzed",
-      "skill": "Image understanding",
-      "output": "Leakage confirmed in photos"
+      "time": "09:15:12",
+      "agent": "Customer",
+      "action": "Attachments ingested",
+      "skill": "Case intake",
+      "output": "3 attachments recorded on case"
     },
     {
       "id": "evt-3",
-      "time": "09:17:20",
-      "agent": "Workflow Agent",
-      "action": "Checked SAP CX",
-      "skill": "SAP CX investigation",
-      "output": "Ticket status: Completed"
+      "time": "09:15:35",
+      "agent": "Agentic Case Officer",
+      "action": "Acknowledgement sent",
+      "skill": "Customer communication",
+      "output": "Acknowledgement delivered; daily updates promised"
     },
     {
       "id": "evt-4",
-      "time": "09:17:58",
-      "agent": "Policy Agent",
-      "action": "Conflict detected",
-      "skill": "Policy retrieval",
-      "output": "Policy requires resolution"
+      "time": "09:16:05",
+      "agent": "Customer Complaint Agent",
+      "action": "Complaint analysed",
+      "skill": "Text understanding",
+      "output": "Priority classified as High; case identity verified"
     },
     {
       "id": "evt-5",
-      "time": "09:18:40",
-      "agent": "Finance Agent",
-      "action": "Resolution prepared",
-      "skill": "Financial calculation",
-      "output": "Compensation & repair plan ready"
+      "time": "09:16:30",
+      "agent": "Customer Complaint Agent",
+      "action": "Attachments analysed",
+      "skill": "Image and document understanding",
+      "output": "Leakage confirmed; handover and payment records reviewed"
     },
     {
       "id": "evt-6",
-      "time": "09:17:05",
+      "time": "09:17:10",
       "agent": "Policy Agent",
       "action": "Policy retrieved",
       "skill": "Policy retrieval",
@@ -50,51 +50,107 @@
     },
     {
       "id": "evt-7",
-      "time": "09:17:38",
-      "agent": "Finance Agent",
-      "action": "Finance context prepared",
-      "skill": "Financial calculation",
-      "output": "Service recovery credit requires approval"
+      "time": "09:17:35",
+      "agent": "Policy Agent",
+      "action": "Coverage validated",
+      "skill": "Policy validation",
+      "output": "Warranty active; contractor responsibility identified"
     },
     {
       "id": "evt-8",
-      "time": "09:18:15",
-      "agent": "Case Commander",
-      "action": "Case escalated",
-      "skill": "Conflict orchestration",
-      "output": "Incorrectly closed case requires remediation"
+      "time": "09:18:05",
+      "agent": "Workflow Agent",
+      "action": "Workflow step 1 submitted",
+      "skill": "Enterprise workflow",
+      "output": "Maintenance Work Order submitted"
     },
     {
       "id": "evt-9",
-      "time": "09:19:05",
-      "agent": "Finance Agent",
-      "action": "Approval requested",
-      "skill": "Financial calculation",
-      "output": "Repair and service recovery package submitted"
+      "time": "09:18:30",
+      "agent": "Workflow Agent",
+      "action": "Workflow step 2 submitted",
+      "skill": "Enterprise workflow",
+      "output": "Site Inspection Request submitted"
     },
     {
       "id": "evt-10",
-      "time": "09:19:45",
-      "agent": "Case Commander",
-      "action": "Approval confirmed",
-      "skill": "Human approval",
-      "output": "Resolution package approved"
+      "time": "09:18:55",
+      "agent": "Workflow Agent",
+      "action": "Workflow step 3 submitted",
+      "skill": "Enterprise workflow",
+      "output": "Vendor Assignment submitted"
     },
     {
       "id": "evt-11",
-      "time": "09:20:10",
+      "time": "09:19:20",
       "agent": "Workflow Agent",
-      "action": "Contractor rejected task",
-      "skill": "Task assignment",
-      "output": "CONTRACTOR_REJECTED"
+      "action": "Workflow step 4 submitted",
+      "skill": "Enterprise workflow",
+      "output": "Customer Update Schedule submitted"
     },
     {
       "id": "evt-12",
-      "time": "09:20:30",
-      "agent": "Workflow Agent",
-      "action": "Task rerouted to alternative contractor",
-      "skill": "Task assignment",
-      "output": "TASK_REROUTED"
+      "time": "09:19:50",
+      "agent": "Finance Agent",
+      "action": "Repair estimate reviewed",
+      "skill": "Financial analysis",
+      "output": "Repair estimate reviewed against handover records"
+    },
+    {
+      "id": "evt-13",
+      "time": "09:20:15",
+      "agent": "Finance Agent",
+      "action": "Compensation validated",
+      "skill": "Financial calculation",
+      "output": "Compensation basis validated; budget availability confirmed"
+    },
+    {
+      "id": "evt-14",
+      "time": "09:20:45",
+      "agent": "Agentic Case Officer",
+      "action": "Approval package presented",
+      "skill": "Case orchestration",
+      "output": "Resolution package presented for human approval"
+    },
+    {
+      "id": "evt-15",
+      "time": "09:20:55",
+      "agent": "Dewi Anggraini",
+      "action": "Approver 1 approved",
+      "skill": "Customer Service Supervisor",
+      "output": "Approved"
+    },
+    {
+      "id": "evt-16",
+      "time": "09:21:05",
+      "agent": "Arif Pratama",
+      "action": "Approver 2 approved",
+      "skill": "Property Operations Manager",
+      "output": "Approved"
+    },
+    {
+      "id": "evt-17",
+      "time": "09:21:15",
+      "agent": "Maya Santoso",
+      "action": "Approver 3 approved",
+      "skill": "Finance Controller",
+      "output": "Approved"
+    },
+    {
+      "id": "evt-18",
+      "time": "09:21:20",
+      "agent": "Rizky Hartono",
+      "action": "Approver 4 approved",
+      "skill": "Business Unit Director",
+      "output": "Approved"
+    },
+    {
+      "id": "evt-19",
+      "time": "09:21:30",
+      "agent": "Agentic Case Officer",
+      "action": "Customer response sent",
+      "skill": "Customer communication",
+      "output": "Final response delivered to Bu Rina"
     }
   ]
 }

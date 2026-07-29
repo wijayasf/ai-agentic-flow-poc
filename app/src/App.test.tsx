@@ -57,7 +57,7 @@ describe('application shell', () => {
       screen.getByRole('status', { name: 'Customer is typing' }),
     ).toBeInTheDocument()
 
-    act(() => vi.advanceTimersByTime(9_000))
+    act(() => vi.advanceTimersByTime(14_000))
     expect(screen.getByAltText('Preview of ceiling leakage evidence')).toBeInTheDocument()
     expect(
       screen.getByAltText('Preview of the fictional handover agreement'),
@@ -65,13 +65,13 @@ describe('application shell', () => {
     expect(
       screen.getByAltText('Preview of the fictional payment receipt'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/Thank you, Rina/)).toBeInTheDocument()
+    expect(screen.getByText(/Terima kasih, Bu Rina/)).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Restart' }))
     expect(
       screen.getByText('Demo is ready. Press Start to begin.'),
     ).toBeInTheDocument()
-    expect(screen.queryByText(/Thank you, Rina/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Terima kasih, Bu Rina/)).not.toBeInTheDocument()
     expect(screen.queryByAltText('Preview of ceiling leakage evidence')).not.toBeInTheDocument()
     expect(
       screen.queryByRole('status', { name: 'Customer is typing' }),
@@ -96,15 +96,12 @@ describe('application shell', () => {
     ).toHaveLength(1)
   })
 
-  it('uses one shared early-story timer after idle mode switching', () => {
+  it('uses one shared early-story timer from a fresh start', () => {
     useDesktopViewport()
     vi.useFakeTimers()
     const setIntervalSpy = vi.spyOn(window, 'setInterval')
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Auto Mode' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Mode' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Auto Mode' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
 
     expect(setIntervalSpy).toHaveBeenCalledTimes(1)
@@ -116,54 +113,19 @@ describe('application shell', () => {
     setIntervalSpy.mockRestore()
   })
 
-  it('shows the Intake context briefly in both modes', () => {
+  it('shows the Intake context briefly on start', () => {
     useDesktopViewport()
     vi.useFakeTimers()
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Auto Mode' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
     expect(screen.getByRole('heading', { name: 'Intake' })).toBeInTheDocument()
     expect(
-      screen.getByText('Receiving the complaint and supporting evidence.'),
+      screen.getByText('Receiving the complaint and supporting attachments.'),
     ).toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(12_000))
     expect(screen.queryByRole('heading', { name: 'Intake' })).not.toBeInTheDocument()
-  })
-
-  it('holds Auto Mode for one human decision and supports a clean fresh run', () => {
-    useDesktopViewport()
-    vi.useFakeTimers()
-    render(<App />)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Auto Mode' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
-    act(() => vi.advanceTimersByTime(390_000))
-
-    expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Reject' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Auto Mode' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Presenter Mode' })).toBeDisabled()
-    // Advance 9 seconds — below the 10-second auto-approve threshold
-    act(() => vi.advanceTimersByTime(9_000))
-    expect(screen.getByLabelText('Demo time 06:30 of 10:00')).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Case Resolved' })).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
-    expect(screen.getByRole('heading', { name: 'Decision Rejected' })).toBeInTheDocument()
-    expect(screen.queryByText('Partial compensation approved')).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Restart' }))
-    expect(screen.getByText('Demo is ready. Press Start to begin.')).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Decision Rejected' })).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
-    act(() => vi.advanceTimersByTime(390_000))
-    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
-    expect(screen.getByText('Human decision received')).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Decision Rejected' })).not.toBeInTheDocument()
   })
 
   it('keeps one runtime timer while switching mobile presentation views', () => {
@@ -174,7 +136,6 @@ describe('application shell', () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Auto' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
     act(() => vi.advanceTimersByTime(5_000))
     expect(screen.getByAltText('Preview of the fictional handover agreement')).toBeInTheDocument()
@@ -211,17 +172,10 @@ describe('application shell', () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Open Mobile Story View/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Auto' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
-    act(() => vi.advanceTimersByTime(390_000))
-    fireEvent.click(screen.getByRole('tab', { name: /Human Approval/ }))
-    expect(screen.getByRole('heading', { name: 'Approval required' })).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
-    fireEvent.click(screen.getByRole('tab', { name: /Final Outcome/ }))
-
-    expect(screen.getByRole('heading', { name: 'Decision Rejected' })).toBeInTheDocument()
-    expect(screen.getByText('Compensation not approved')).toBeInTheDocument()
-    expect(screen.queryByText('Partial compensation approved')).not.toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(5_000))
+    fireEvent.click(screen.getByRole('tab', { name: /Customer Story/ }))
+    expect(screen.getByAltText('Preview of the fictional handover agreement')).toBeInTheDocument()
   })
 
   it('preserves Presenter Assist through Restart without adding another runtime timer', () => {
@@ -232,7 +186,7 @@ describe('application shell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
-    act(() => vi.advanceTimersByTime(12_000))
+    act(() => vi.advanceTimersByTime(2_000))
     expect(screen.getByRole('heading', { name: 'Intake' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Restart' }))
 

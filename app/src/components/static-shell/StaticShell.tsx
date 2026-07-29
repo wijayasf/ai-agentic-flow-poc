@@ -8,6 +8,10 @@ import { agents } from '../agent-flow/config'
 import type { AgentTone } from '../agent-flow/config'
 import { AgenticFlowPanel } from '../agent-flow/AgenticFlowPanel'
 import { artifactTrailingGlyph } from '../trust/artifactTrailingGlyph'
+import { HumanApproval } from '../trust/HumanApproval'
+import { InvestigationEvidence } from '../trust/InvestigationEvidence'
+import { NotificationStrip } from '../trust/NotificationStrip'
+import { ResolutionBrief } from '../trust/ResolutionBrief'
 import { shouldShowContextCard } from '../trust/shouldShowContextCard'
 import type { SceneId } from '../../domain/runtime-fixtures/types'
 import type {
@@ -29,21 +33,20 @@ export interface StaticShellProps {
 export const DESIGN_SURFACE_WIDTH = 1920
 export const DESIGN_SURFACE_HEIGHT = 1080
 
-const artifactTones: readonly AgentTone[] = ['blue', 'red', 'green', 'violet']
+const artifactTones: readonly AgentTone[] = ['green', 'violet', 'blue', 'orange']
 const artifactIcons: readonly IconName[] = [
-  'artifact',
-  'alert',
-  'approval',
-  'shield',
+  'message',
+  'policy',
+  'flow',
+  'calculator',
 ]
 
 const SCENE_META: Record<SceneId, { index: number; label: string }> = {
   'scene-intake': { index: 1, label: 'Intake' },
   'scene-investigation': { index: 2, label: 'Investigation' },
-  'scene-conflict': { index: 3, label: 'Conflict' },
+  'scene-workflow': { index: 3, label: 'Workflow' },
   'scene-approval': { index: 4, label: 'Approval' },
-  'scene-failure-recovery': { index: 5, label: 'Recovery' },
-  'scene-resolution': { index: 6, label: 'Resolution' },
+  'scene-resolution': { index: 5, label: 'Resolution' },
 }
 
 const DEMO_TAGLINE = 'AI-Powered Complaint Resolution Demo'
@@ -102,10 +105,17 @@ function MetricGrid({ viewModel }: { viewModel: RuntimeViewModel }) {
       tone: 'blue' as const,
     },
     {
-      label: 'Working Agents',
-      value: String(viewModel.activeAgentCount),
+      label: 'Specialist Agents',
+      value: String(viewModel.specialistsCompleted),
       suffix: 'of 4',
-      status: viewModel.activeAgentCount === 0 ? 'Relay Ready' : 'In Progress',
+      status:
+        viewModel.specialistsCompleted === 4
+          ? 'All Completed'
+          : viewModel.specialistsCompleted === 0
+            ? viewModel.activeAgentCount === 0
+              ? 'Relay Ready'
+              : 'In Progress'
+            : `${viewModel.specialistsCompleted} Completed`,
       icon: 'users' as const,
       tone: 'green' as const,
     },
@@ -151,9 +161,9 @@ function ArtifactList({ viewModel }: { viewModel: RuntimeViewModel }) {
   )
   return (
     <section className={styles.artifactSection} aria-labelledby="artifacts-heading">
-      <h3 id="artifacts-heading">Key Artifacts</h3>
+      <h3 id="artifacts-heading">Evidence Packages</h3>
       {availableArtifacts.length === 0 ? (
-        <p className={styles.artifactEmpty}>Artifacts appear as agents create them.</p>
+        <p className={styles.artifactEmpty}>Packages appear as agents complete their work.</p>
       ) : (
         <ol>
           {availableArtifacts.map((artifact) => {
@@ -183,7 +193,10 @@ function ArtifactList({ viewModel }: { viewModel: RuntimeViewModel }) {
 function DecisionRationale({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
   const rationale = viewModel.decisionRationale
   if (rationale === null) return null
-  const agentName = agents.find((agent) => agent.id === rationale.agentId)?.name
+  const agentName =
+    rationale.agentId === 'officer'
+      ? 'AI Agentic Case Officer'
+      : agents.find((agent) => agent.id === rationale.agentId)?.name
   return (
     <article
       className={styles.rationaleCard}
@@ -251,42 +264,44 @@ function ApprovalDecisionCard({
       className={styles.approvalDecisionCard}
       aria-labelledby="approval-decision-heading"
     >
-      <header>
-        <span aria-hidden="true"><Icon name="approval" size={20} /></span>
-        <div>
-          <small>Explicit human decision</small>
-          <h3 id="approval-decision-heading">Approval required</h3>
-        </div>
-      </header>
-      <section aria-labelledby="recommended-action-heading">
-        <h4 id="recommended-action-heading">Recommended Action</h4>
-        <strong>{approval.recommendedAction}</strong>
-      </section>
-      <section aria-labelledby="approval-why-heading">
-        <h4 id="approval-why-heading">Why</h4>
-        <ul>
-          {approval.why.map((reason) => <li key={reason}>{reason}</li>)}
-        </ul>
-      </section>
-      <div className={styles.approvalImpactGrid}>
-        <section aria-labelledby="impact-heading">
-          <h4 id="impact-heading">Estimated Impact</h4>
-          <strong>{approval.estimatedImpact}</strong>
-          <small>{approval.impactQualifier}</small>
+      <div className={styles.approvalDecisionCardBody}>
+        <header>
+          <span aria-hidden="true"><Icon name="approval" size={20} /></span>
+          <div>
+            <small>Explicit human decision</small>
+            <h3 id="approval-decision-heading">Approval required</h3>
+          </div>
+        </header>
+        <section aria-labelledby="recommended-action-heading">
+          <h4 id="recommended-action-heading">Recommended Action</h4>
+          <strong>{approval.recommendedAction}</strong>
         </section>
-        <section aria-labelledby="rejection-risk-heading">
-          <h4 id="rejection-risk-heading">Risk if rejected</h4>
-          <strong>{approval.riskIfRejected}</strong>
+        <section aria-labelledby="approval-why-heading">
+          <h4 id="approval-why-heading">Why</h4>
+          <ul>
+            {approval.why.map((reason) => <li key={reason}>{reason}</li>)}
+          </ul>
+        </section>
+        <div className={styles.approvalImpactGrid}>
+          <section aria-labelledby="impact-heading">
+            <h4 id="impact-heading">Estimated Impact</h4>
+            <strong>{approval.estimatedImpact}</strong>
+            <small>{approval.impactQualifier}</small>
+          </section>
+          <section aria-labelledby="rejection-risk-heading">
+            <h4 id="rejection-risk-heading">Risk if rejected</h4>
+            <strong>{approval.riskIfRejected}</strong>
+          </section>
+        </div>
+        <section className={styles.gatePreview} aria-labelledby="gate-preview-heading">
+          <small>Draft recommendation · Not final</small>
+          <h4 id="gate-preview-heading">{approval.outcomePreview.label}</h4>
+          <ul>
+            {approval.outcomePreview.items.map((item) => <li key={item}>{item}</li>)}
+          </ul>
         </section>
       </div>
-      <section className={styles.gatePreview} aria-labelledby="gate-preview-heading">
-        <small>Draft recommendation · Not final</small>
-        <h4 id="gate-preview-heading">{approval.outcomePreview.label}</h4>
-        <ul>
-          {approval.outcomePreview.items.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      </section>
-      <div className={styles.approvalActions}>
+      <div className={`${styles.approvalDecisionFooter} ${styles.approvalActions}`}>
         <button
           className={styles.rejectButton}
           type="button"
@@ -348,7 +363,6 @@ function FinalOutcome({ viewModel }: { readonly viewModel: RuntimeViewModel }) {
 }
 
 function ContextStatusCard({
-  state,
   viewModel,
   actions,
 }: StaticShellProps) {
@@ -362,42 +376,32 @@ function ContextStatusCard({
     tone = 'info'
     icon = 'message'
     heading = 'Intake'
-    copy = 'Receiving the complaint and supporting evidence.'
-  } else if (state.playbackStatus === 'waiting_failure_injection') {
-    tone = 'success'
-    icon = 'check'
-    heading = viewModel.currentMoment?.title ?? 'Failure injection ready'
-    copy = viewModel.currentMoment?.description ?? ''
+    copy = 'Receiving the complaint and supporting attachments.'
   } else if (context.type === 'approval') {
     tone = 'warning'
     icon = 'clock'
     heading = 'Approval required'
     copy = context.copy
-  } else if (context.type === 'failure') {
-    tone = 'danger'
-    icon = 'alert'
-    heading = 'Contractor rejected'
+  } else if (context.type === 'approving') {
+    tone = 'info'
+    icon = 'activity'
+    heading = 'Enterprise approval workflow'
     copy = context.copy
-  } else if (context.type === 'recovery') {
-    tone = 'warning'
-    icon = 'refresh'
-    heading = 'Recovery in progress'
-    copy = context.copy
-  } else if (context.type === 'recovered') {
+  } else if (context.type === 'resolution') {
     tone = 'success'
     icon = 'check'
-    heading = 'Recovery complete'
+    heading = 'Customer response delivered'
     copy = context.copy
   } else if (context.type === 'recommendation') {
     tone = 'success'
     icon = 'check'
-    heading = 'Recommendation'
+    heading = 'Preventive recommendation'
     copy = context.copy
-  } else if (state.approvalStatus === 'approved') {
+  } else if (viewModel.approvalStatus === 'approved') {
     tone = 'success'
     icon = 'check'
     heading = 'Resolution package approved'
-    copy = 'The approved package is ready. Initiating repair contractor assignment.'
+    copy = 'The approved package is being finalised for the customer.'
   }
 
   return (
@@ -405,7 +409,7 @@ function ContextStatusCard({
       className={styles.contextCard}
       data-tone={tone}
       data-focus={viewModel.focusTarget === 'approval' ? 'primary' : undefined}
-      role={context.type === 'failure' ? 'alert' : 'status'}
+      role="status"
       aria-labelledby="context-status-heading"
     >
       <span className={styles.contextIcon} aria-hidden="true">
@@ -467,29 +471,39 @@ function TrustObservabilityPanel(props: StaticShellProps) {
       </PanelHeading>
       <div className={styles.trustBody}>
         <MetricGrid viewModel={props.viewModel} />
+        <NotificationStrip state={props.state} />
         <div className={styles.trustContent}>
           {isIdle ? (
             <ObservabilityIdleState />
           ) : props.viewModel.finalOutcome !== null ? (
             <FinalOutcome viewModel={props.viewModel} />
-          ) : props.viewModel.approvalGate !== null ? (
-            <ApprovalDecisionCard
-              viewModel={props.viewModel}
-              actions={props.actions}
-            />
           ) : (
             <>
+              <ResolutionBrief
+                state={props.state}
+                viewModel={props.viewModel}
+              />
               <ArtifactList viewModel={props.viewModel} />
-              {props.viewModel.outcomePreview !== null ? (
-                <OutcomePreview viewModel={props.viewModel} />
-              ) : shouldShowContextCard(props.state, props.viewModel) ? (
-                <ContextStatusCard {...props} />
-              ) : (
-                <DecisionRationale viewModel={props.viewModel} />
-              )}
+              <InvestigationEvidence viewModel={props.viewModel} />
+              {props.viewModel.approvalGate === null ? (
+                props.viewModel.outcomePreview !== null ? (
+                  <OutcomePreview viewModel={props.viewModel} />
+                ) : shouldShowContextCard(props.state, props.viewModel) ? (
+                  <ContextStatusCard {...props} />
+                ) : (
+                  <DecisionRationale viewModel={props.viewModel} />
+                )
+              ) : null}
             </>
           )}
         </div>
+        <HumanApproval state={props.state} viewModel={props.viewModel} />
+        {props.viewModel.approvalGate !== null ? (
+          <ApprovalDecisionCard
+            viewModel={props.viewModel}
+            actions={props.actions}
+          />
+        ) : null}
       </div>
     </section>
   )
@@ -506,16 +520,9 @@ const playbackControls = [
     key: 'nextMoment',
   },
   { label: 'Restart', icon: 'refresh', variant: 'neutral', key: 'restart' },
-  {
-    label: 'Inject Failure',
-    icon: 'alert',
-    variant: 'danger',
-    key: 'injectFailure',
-  },
 ] as const
 
 function PlaybackControls({
-  state,
   viewModel,
   actions,
 }: StaticShellProps) {
@@ -525,7 +532,6 @@ function PlaybackControls({
     resume: viewModel.controls.canResume,
     nextMoment: viewModel.controls.canNextMoment,
     restart: viewModel.controls.canRestart,
-    injectFailure: viewModel.controls.canInjectFailure,
   }
   const handlers = {
     start: actions.start,
@@ -533,7 +539,6 @@ function PlaybackControls({
     resume: actions.resume,
     nextMoment: actions.nextMoment,
     restart: actions.restart,
-    injectFailure: actions.injectFailure,
   }
 
   return (
@@ -555,33 +560,6 @@ function PlaybackControls({
             {control.label}
           </button>
         ))}
-      </div>
-      <span className={styles.playbackDivider} aria-hidden="true" />
-      <div className={styles.modeGroup} aria-label="Playback mode selection">
-        <button
-          className={`${styles.presenterModeButton} ${
-            state.mode === 'presenter' ? styles.selectedMode : ''
-          }`}
-          type="button"
-          aria-pressed={state.mode === 'presenter'}
-          disabled={!viewModel.controls.canSelectPresenter}
-          onClick={() => actions.selectMode('presenter')}
-        >
-          <Icon name="user" size={19} aria-hidden="true" />
-          Presenter Mode
-        </button>
-        <button
-          className={`${styles.autoModeButton} ${
-            state.mode === 'auto' ? styles.selectedMode : ''
-          }`}
-          type="button"
-          aria-pressed={state.mode === 'auto'}
-          disabled={!viewModel.controls.canSelectAuto}
-          onClick={() => actions.selectMode('auto')}
-        >
-          <Icon name="bot" size={19} aria-hidden="true" />
-          Auto Mode
-        </button>
       </div>
     </footer>
   )

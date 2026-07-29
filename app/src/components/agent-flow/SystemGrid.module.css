@@ -35,6 +35,20 @@
   border-color: #9ec5f8;
 }
 
+.card[data-state='engaged'][data-settled='true'] {
+  border-color: var(--color-success);
+  background: #f2fbf5;
+  transition:
+    border-color 320ms ease,
+    background 320ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-state='engaged'][data-settled='true'] {
+    transition: none;
+  }
+}
+
 .card[data-state='engaged'][data-system-id='system-policy-repository'],
 .card[data-state='engaged'][data-system-id='system-sap-cx'],
 .card[data-state='engaged'][data-system-id='system-sap-s4hana'] {
@@ -103,4 +117,18 @@
 
 .placeholder[data-tone='orange'] {
   background: #fff0df;
+}
+
+.placeholder[data-brand='true'] {
+  padding: 2px 4px;
+  background: transparent;
+}
+
+.brandImage {
+  display: block;
+  max-width: 100%;
+  max-height: 20px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }

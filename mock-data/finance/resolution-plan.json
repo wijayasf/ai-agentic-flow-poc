@@ -1,7 +1,10 @@
 {
   "id": "finance-resolution-001",
   "currency": "IDR",
-  "repairPlan": "Schedule priority ceiling repair",
-  "compensationType": "service recovery credit",
-  "requiresApproval": true
+  "repairPlan": "Schedule priority ceiling repair within 24 hours",
+  "compensationType": "priority repair and compensation credit",
+  "requiresApproval": true,
+  "compensationAmount": 31000000,
+  "compensationCurrency": "IDR",
+  "compensationDisplay": "Rp31.000.000"
 }
