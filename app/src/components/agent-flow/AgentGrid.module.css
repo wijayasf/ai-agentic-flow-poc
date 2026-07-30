@@ -20,7 +20,7 @@
   box-shadow: var(--shadow-card);
 }
 
-.card > span:first-child {
+.card > span[data-tone] {
   margin-top: 14px;
 }
 
