@@ -20,6 +20,7 @@ import type {
 } from '../../domain/runtime'
 import type { RuntimeControllerActions } from '../../runtime'
 import styles from './StaticShell.module.css'
+import { useApprovalAutoScroll } from './useApprovalAutoScroll'
 
 export interface StaticShellProps {
   readonly state: RuntimeState
@@ -490,7 +491,7 @@ function TrustObservabilityPanel(props: StaticShellProps) {
       <PanelHeading id="trust-heading" icon="shield">
         Trust &amp; Observability
       </PanelHeading>
-      <div className={styles.trustBody}>
+      <div className={styles.trustBody} data-testid="trust-body">
         <MetricGrid viewModel={props.viewModel} />
         <NotificationStrip state={props.state} />
         <div className={styles.trustContent}>
@@ -590,6 +591,7 @@ export function StaticShell(props: StaticShellProps) {
   const canvasScale = props.canvasScale ?? 1
   const scaledWidth = DESIGN_SURFACE_WIDTH * canvasScale
   const scaledHeight = DESIGN_SURFACE_HEIGHT * canvasScale
+  useApprovalAutoScroll(props.viewModel.approvalStatus, props.state.playbackStatus)
   return (
     <main
       className={`${styles.viewport} ${props.embedded ? styles.embeddedViewport : ''}`}

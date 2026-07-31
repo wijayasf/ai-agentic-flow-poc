@@ -178,21 +178,20 @@ describe('application shell', () => {
     expect(screen.getByAltText('Preview of the fictional handover agreement')).toBeInTheDocument()
   })
 
-  it('preserves Presenter Assist through Restart without adding another runtime timer', () => {
+  it('uses a single runtime timer across Start and Restart', () => {
     useDesktopViewport()
     vi.useFakeTimers()
     const setIntervalSpy = vi.spyOn(window, 'setInterval')
     render(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Presenter Assist: Off' }))
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
     act(() => vi.advanceTimersByTime(2_000))
     expect(screen.getByRole('heading', { name: 'Intake' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Restart' }))
 
-    expect(screen.getByRole('button', { name: 'Presenter Assist: On' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByTestId('presenter-assist-surface')).toBeInTheDocument()
-    expect(screen.getByText('10:00 simulated remaining')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Presenter Assist/ }),
+    ).not.toBeInTheDocument()
     expect(screen.getByLabelText('Demo time 00:00 of 10:00')).toBeInTheDocument()
     expect(setIntervalSpy).toHaveBeenCalledTimes(1)
     setIntervalSpy.mockRestore()

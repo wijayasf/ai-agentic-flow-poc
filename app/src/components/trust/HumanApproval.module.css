@@ -26,15 +26,14 @@
 .card {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   min-height: 0;
-  max-height: 100%;
-  padding: 12px 14px;
-  gap: 10px;
+  padding: 10px 14px;
+  gap: 8px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
 }
 
 .card > .headerRow {
@@ -46,8 +45,7 @@
   flex-direction: column;
   min-height: 0;
   flex: 1;
-  gap: 10px;
-  overflow: hidden;
+  gap: 8px;
 }
 
 .detailBody > .packageBlock {
@@ -88,9 +86,9 @@
 
 .packageBlock {
   display: grid;
-  gap: 8px;
-  margin: 6px 0 2px;
-  padding: 8px 10px;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 6px 10px;
   border: 1px dashed #b8d2ff;
   border-radius: 8px;
   background: #f7faff;
@@ -108,7 +106,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 6px 10px;
+  padding: 4px 10px;
   border-radius: 6px;
   background: #ffffff;
 }
@@ -201,9 +199,9 @@
 
 .progressBlock {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: #ffffff;
@@ -291,7 +289,7 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: visible;
   padding-right: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 23, 42, 0.24) transparent;
@@ -312,7 +310,7 @@
 
 .approverList {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -342,7 +340,7 @@
 .approverRow {
   display: grid;
   align-items: center;
-  padding: 6px 10px;
+  padding: 4px 10px;
   gap: 10px;
   grid-template-columns: 22px 1fr auto;
   border: 1px solid var(--color-border);

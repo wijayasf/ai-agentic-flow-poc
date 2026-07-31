@@ -287,4 +287,30 @@ describe('StaticShell runtime presentation', () => {
     expect(screen.queryByRole('heading', { name: 'Case Resolved' })).not.toBeInTheDocument()
     expect(screen.queryByText('Rp31,000,000 compensation approved')).not.toBeInTheDocument()
   })
+
+  it('does not render Presenter Assist toggle or surface in the header', () => {
+    renderShell()
+    expect(
+      screen.queryByRole('button', { name: /Presenter Assist/ }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('presenter-assist-surface')).not.toBeInTheDocument()
+  })
+
+  it('renders a Demo Playback panel showing current stage and step in the header', () => {
+    renderShell(autoAt(9))
+    const panel = screen.getByTestId('header-demo-playback')
+    expect(panel).toHaveTextContent('Demo Playback')
+    expect(panel).toHaveTextContent(/Stage/)
+    expect(panel).toHaveTextContent(/Step/)
+  })
+
+  it('at Case Resolved hides Human Approval and End of AI Analysis divider', () => {
+    renderShell(simulateAutoRun())
+    expect(screen.getByRole('heading', { name: 'Case Resolved' })).toBeInTheDocument()
+    expect(screen.queryByTestId('human-approval')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('human-approval-divider')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Human Approval' }),
+    ).not.toBeInTheDocument()
+  })
 })
