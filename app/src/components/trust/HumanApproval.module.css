@@ -26,15 +26,14 @@
 .card {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   min-height: 0;
-  max-height: 100%;
   padding: 10px 14px;
   gap: 8px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
 }
 
 .card > .headerRow {
@@ -47,7 +46,6 @@
   min-height: 0;
   flex: 1;
   gap: 8px;
-  overflow: hidden;
 }
 
 .detailBody > .packageBlock {
@@ -291,7 +289,7 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: visible;
   padding-right: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 23, 42, 0.24) transparent;
