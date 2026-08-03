@@ -12,12 +12,17 @@ export const AUDIO_LEVELS = {
   musicDucked: 0.04,
   approvalNotify: 0.32,
   approveConfirm: 0.24,
+  // Softer than approveConfirm on purpose: this is the closure accent,
+  // not the click acknowledgement. Audience should feel "chain settled",
+  // not "another action just happened".
+  approvalChainComplete: 0.16,
   caseComplete: 0.28,
 } as const
 
 export const AUDIO_TIMING_MS = {
   musicFadeIn: 2400,
   musicFadeOut: 1400,
+  musicFadeEnd: 3000,
   musicDuck: 260,
   musicRestore: 900,
   chimeCooldown: 900,

@@ -302,8 +302,15 @@ export function selectNowNext(
     }
   }
   if (state.approvalStatus === 'approved' && state.approversCompleted > 0) {
+    // Keep the "Enterprise approval N of 4" caption for the entire Approval
+    // stage — including M29 where approversCompleted flips to 4. Only advance
+    // to "Preparing customer response" once we're actually in the Resolution
+    // stage. Keeps the visual state honest with the moment (M29's title is
+    // "Approver 4 approved. Enterprise approval workflow complete.") and lets
+    // the closure chime land while the UI still reads "4 of 4".
+    const stage = selectCurrentStage(state, fixtures)
     return {
-      now: state.approversCompleted < 4
+      now: stage === 'Approval'
         ? `Enterprise approval ${state.approversCompleted} of 4`
         : 'Preparing customer response',
       next: state.customerResponseSent

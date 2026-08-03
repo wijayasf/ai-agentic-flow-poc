@@ -68,7 +68,9 @@ function MobileRuntimeControls({ viewModel, actions, audioMuted, onToggleAudioMu
             className={styles.mobileMuteButton}
             onClick={onToggleAudioMute}
             aria-pressed={audioMuted === true}
+            aria-keyshortcuts="M"
             aria-label={audioMuted === true ? 'Unmute presentation audio' : 'Mute presentation audio'}
+            title={audioMuted === true ? 'Audio off (M)' : 'Audio on (M)'}
           >
             <Icon name={audioMuted === true ? 'volume-off' : 'volume-on'} size={16} aria-hidden="true" />
           </button>

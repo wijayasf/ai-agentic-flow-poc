@@ -56,7 +56,6 @@ function tryCreateAudio(src: string, options?: {
     el.preload = options?.preload ?? 'auto'
     el.crossOrigin = 'anonymous'
     el.volume = 0
-    // Kick preload
     try { el.load() } catch { /* noop */ }
     return el
   } catch {
@@ -81,16 +80,20 @@ export interface AudioController {
   readonly setMuted: (muted: boolean) => void
   readonly startMusic: () => void
   readonly stopMusic: () => void
+  readonly endMusic: () => void
   readonly playApprovalNotify: () => void
   readonly playApproveConfirm: () => void
+  readonly playApprovalChainComplete: () => void
   readonly playCaseComplete: () => void
-  readonly dispose: () => void
 }
 
 export function createAudioController(): AudioController {
   const music = tryCreateAudio(AUDIO_ASSETS.ambientMusic, { loop: true })
   const approvalNotify = tryCreateAudio(AUDIO_ASSETS.approvalNotify)
   const approveConfirm = tryCreateAudio(AUDIO_ASSETS.approveConfirm)
+  // Dedicated element so approve-click and chain-complete never fight over
+  // currentTime / volume, even though they share the same underlying MP3.
+  const approvalChainComplete = tryCreateAudio(AUDIO_ASSETS.approveConfirm)
   const caseComplete = tryCreateAudio(AUDIO_ASSETS.caseComplete)
 
   let muted = false
@@ -156,9 +159,7 @@ export function createAudioController(): AudioController {
     const t = nowMs()
     if (t - lastChimeAt < AUDIO_TIMING_MS.chimeCooldown) return
     lastChimeAt = t
-    try {
-      el.currentTime = 0
-    } catch { /* seek not supported before load */ }
+    try { el.currentTime = 0 } catch { /* seek not supported before load */ }
     el.volume = Math.max(0, Math.min(1, volume))
     void safePlay(el)
     duckThenRestore()
@@ -177,17 +178,20 @@ export function createAudioController(): AudioController {
     musicFade = fadeVolume(music, musicTargetVolume(), AUDIO_TIMING_MS.musicFadeIn)
   }
 
-  const stopMusic = () => {
+  const fadeMusicToStop = (fadeMs: number) => {
     if (music === null) return
     musicIntent = 'stopped'
     cancelDuckFade()
     cancelMusicFade()
     const el = music
-    musicFade = fadeVolume(el, 0, AUDIO_TIMING_MS.musicFadeOut, () => {
+    musicFade = fadeVolume(el, 0, fadeMs, () => {
       try { el.pause() } catch { /* noop */ }
       try { el.currentTime = 0 } catch { /* noop */ }
     })
   }
+
+  const stopMusic = () => fadeMusicToStop(AUDIO_TIMING_MS.musicFadeOut)
+  const endMusic = () => fadeMusicToStop(AUDIO_TIMING_MS.musicFadeEnd)
 
   const setMuted = (next: boolean) => {
     if (muted === next) return
@@ -195,23 +199,14 @@ export function createAudioController(): AudioController {
     applyMuteState()
   }
 
-  const dispose = () => {
-    cancelMusicFade()
-    cancelDuckFade()
-    ;[music, approvalNotify, approveConfirm, caseComplete].forEach((el) => {
-      if (el === null) return
-      try { el.pause() } catch { /* noop */ }
-      el.src = ''
-    })
-  }
-
   return {
     setMuted,
     startMusic,
     stopMusic,
+    endMusic,
     playApprovalNotify: () => playChime(approvalNotify, AUDIO_LEVELS.approvalNotify),
     playApproveConfirm: () => playChime(approveConfirm, AUDIO_LEVELS.approveConfirm),
+    playApprovalChainComplete: () => playChime(approvalChainComplete, AUDIO_LEVELS.approvalChainComplete),
     playCaseComplete: () => playChime(caseComplete, AUDIO_LEVELS.caseComplete),
-    dispose,
   }
 }
