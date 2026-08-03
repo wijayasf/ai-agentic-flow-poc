@@ -27,6 +27,8 @@ export type IconName =
   | 'system'
   | 'user'
   | 'users'
+  | 'volume-on'
+  | 'volume-off'
 
 interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   readonly name: IconName
@@ -195,6 +197,21 @@ function IconPaths({ name }: { readonly name: IconName }) {
         <>
           <circle cx="9" cy="8" r="3" />
           <path d="M3 20a6 6 0 0 1 12 0M16 4a3 3 0 0 1 0 6M16 14a6 6 0 0 1 5 6" />
+        </>
+      )
+    case 'volume-on':
+      return (
+        <>
+          <path d="M5 9v6h4l5 4V5L9 9Z" />
+          <path d="M17 8a5 5 0 0 1 0 8" />
+          <path d="M20.5 5.5a9 9 0 0 1 0 13" />
+        </>
+      )
+    case 'volume-off':
+      return (
+        <>
+          <path d="M5 9v6h4l5 4V5L9 9Z" />
+          <path d="m17 9 5 6M22 9l-5 6" />
         </>
       )
     default:

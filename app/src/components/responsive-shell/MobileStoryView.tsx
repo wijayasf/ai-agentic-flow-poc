@@ -55,13 +55,26 @@ function lifecycleIcon(status: AgentLifecycleStatus): IconName {
   return 'clock'
 }
 
-function MobileRuntimeControls({ viewModel, actions }: StaticShellProps) {
+function MobileRuntimeControls({ viewModel, actions, audioMuted, onToggleAudioMute }: StaticShellProps) {
   return (
     <div className={styles.mobileControls} aria-label="Mobile demo controls">
       <div className={styles.mobileTransport} aria-label="Playback controls">
         <button type="button" disabled={!viewModel.controls.canStart} onClick={actions.start}>
           <Icon name="play" size={17} aria-hidden="true" /> Start
         </button>
+        {onToggleAudioMute !== undefined ? (
+          <button
+            type="button"
+            className={styles.mobileMuteButton}
+            onClick={onToggleAudioMute}
+            aria-pressed={audioMuted === true}
+            aria-keyshortcuts="M"
+            aria-label={audioMuted === true ? 'Unmute presentation audio' : 'Mute presentation audio'}
+            title={audioMuted === true ? 'Audio off (M)' : 'Audio on (M)'}
+          >
+            <Icon name={audioMuted === true ? 'volume-off' : 'volume-on'} size={16} aria-hidden="true" />
+          </button>
+        ) : null}
         <button type="button" disabled={!viewModel.controls.canPause} onClick={actions.pause}>
           <Icon name="pause" size={17} aria-hidden="true" /> Pause
         </button>

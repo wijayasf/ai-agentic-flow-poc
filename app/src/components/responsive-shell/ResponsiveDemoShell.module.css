@@ -223,6 +223,18 @@
   color: var(--color-primary-blue);
 }
 
+.mobileMuteButton {
+  width: 44px;
+  padding: 8px !important;
+  color: #667085 !important;
+}
+
+.mobileMuteButton[aria-pressed='true'] {
+  border-color: #f0b6b2 !important;
+  background: var(--color-danger-tint) !important;
+  color: #b42318 !important;
+}
+
 .mobileControls button:disabled,
 .storyPager button:disabled {
   cursor: not-allowed;

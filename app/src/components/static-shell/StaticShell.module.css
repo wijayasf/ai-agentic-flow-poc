@@ -1217,6 +1217,41 @@
   color: var(--color-primary-blue);
 }
 
+.transportPair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.muteButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #d7dde7;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: #667085;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.muteButton:hover {
+  border-color: #bdc7d4;
+  color: #24324a;
+}
+
+.muteButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.muteButton[aria-pressed='true'] {
+  border-color: #f0b6b2;
+  background: var(--color-danger-tint);
+  color: #b42318;
+}
+
 .neutralButton:nth-child(2) {
   width: 117px;
 }
