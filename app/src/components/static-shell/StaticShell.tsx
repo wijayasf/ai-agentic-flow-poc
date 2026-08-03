@@ -29,6 +29,8 @@ export interface StaticShellProps {
   readonly canvasScale?: number
   readonly embedded?: boolean
   readonly headerActions?: ReactNode
+  readonly audioMuted?: boolean
+  readonly onToggleAudioMute?: () => void
 }
 
 export const DESIGN_SURFACE_WIDTH = 1920
@@ -547,6 +549,8 @@ const playbackControls = [
 function PlaybackControls({
   viewModel,
   actions,
+  audioMuted,
+  onToggleAudioMute,
 }: StaticShellProps) {
   const availability = {
     start: viewModel.controls.canStart,
@@ -570,18 +574,38 @@ function PlaybackControls({
         <h2 id="playback-heading">Demo Playback Controls</h2>
       </div>
       <div className={styles.transportGroup} aria-label="Playback controls">
-        {playbackControls.map((control) => (
-          <button
-            className={styles[`${control.variant}Button`]}
-            type="button"
-            disabled={!availability[control.key]}
-            onClick={handlers[control.key]}
-            key={control.label}
-          >
-            <Icon name={control.icon} size={19} aria-hidden="true" />
-            {control.label}
-          </button>
-        ))}
+        {playbackControls.map((control) => {
+          const button = (
+            <button
+              className={styles[`${control.variant}Button`]}
+              type="button"
+              disabled={!availability[control.key]}
+              onClick={handlers[control.key]}
+              key={control.label}
+            >
+              <Icon name={control.icon} size={19} aria-hidden="true" />
+              {control.label}
+            </button>
+          )
+          if (control.key === 'start' && onToggleAudioMute !== undefined) {
+            return (
+              <span className={styles.transportPair} key={control.label}>
+                {button}
+                <button
+                  type="button"
+                  className={styles.muteButton}
+                  onClick={onToggleAudioMute}
+                  aria-pressed={audioMuted === true}
+                  aria-label={audioMuted === true ? 'Unmute presentation audio' : 'Mute presentation audio'}
+                  title={audioMuted === true ? 'Sound off' : 'Sound on'}
+                >
+                  <Icon name={audioMuted === true ? 'volume-off' : 'volume-on'} size={16} aria-hidden="true" />
+                </button>
+              </span>
+            )
+          }
+          return button
+        })}
       </div>
     </footer>
   )
